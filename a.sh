@@ -29,9 +29,9 @@ command_exists() {
 }
 
 # Function to install packages using the globally defined INSTALL_CMD
-install_package() {
+install_packages() {
     # The eval is used to correctly execute the command string with arguments
-    eval "$INSTALL_CMD \"$1\""
+    eval "$INSTALL_CMD $@"
 }
 
 # --- Main Logic ---
@@ -71,28 +71,19 @@ echo "✅ Package manager configured."
 # Step 2: Install all dependencies
 echo "› Installing all required dependencies..."
 echo "  - Installing core tools..."
-install_package "git"
-install_package "stow"
+install_packages "git stow"
 
 
 echo "  - Installing build tools for dwm/slock..."
-eval install_package "$BUILD_DEPS_GROUP"
+install_packages $BUILD_DEPS_GROUP
 
 
 echo "  - Installing desktop applications and utilities..."
-install_package "alacritty"
-install_package "kitty"
-install_package "neovim"
-install_package "picom"
-install_package "tmux"
-install_package "waybar"
-install_package "wofi"
-install_package "feh"
-install_package "xbindkeys"
+install_packages "alacritty kitty neovim picom tmux waybar wofi feh xbindkeys"
 
 # Hyprland installation is often more complex, but we'll try for distros where it's easy.
 if [[ "$OS_ID" == "fedora" || "$OS_ID" == "arch" ]]; then
-    install_package "hyprland"
+    install_packages "hyprland"
 fi
 echo "✅ Dependencies installed."
 
