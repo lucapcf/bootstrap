@@ -46,16 +46,19 @@ OS_ID=""
 if command_exists dnf; then
     echo "›› Fedora detected. Using DNF."
     INSTALL_CMD="sudo dnf install -y"
+    BUILD_DEPS_GROUP='@development-tools'
     OS_ID="fedora"
 elif command_exists apt-get; then
     echo "›› Debian/Ubuntu based system detected. Using APT."
     sudo apt-get update
     INSTALL_CMD="sudo apt-get install -y"
+    BUILD_DEPS_GROUP="build-essential libx11-dev libxft-dev libxinerama-dev"
     # Try to get OS_ID from /etc/os-release for tweaks later
     if [ -f /etc/os-release ]; then . /etc/os-release; OS_ID=$ID; fi
 elif command_exists pacman; then
     echo "›› Arch Linux detected. Using Pacman."
     INSTALL_CMD="sudo pacman -S --noconfirm --needed"
+    BUILD_DEPS_GROUP="base-devel libx11 libxft libxinerama"
     OS_ID="arch"
 else
     echo "⛔ ERROR: Could not find a known package manager (dnf, apt-get, pacman)."
@@ -71,8 +74,10 @@ echo "  - Installing core tools..."
 install_package "git"
 install_package "stow"
 
+
 echo "  - Installing build tools for dwm/slock..."
-# The variable needs to be expanded without quotes here
+eval install_package "$BUILD_DEPS_GROUP"
+
 
 echo "  - Installing desktop applications and utilities..."
 install_package "alacritty"
@@ -146,20 +151,20 @@ fi
 
 
 # Step 6: Apply distribution-specific tweaks
-echo "› Applying distribution-specific tweaks..."
-if [[ "$OS_ID" == "fedora" ]]; then
-    echo "  - Applying Fedora-specific bash configuration..."
-    if [ -f "$HOME/.bashrc_fedora" ]; then
-        ln -sf "$HOME/.bashrc_fedora" "$HOME/.bashrc"
-        echo "    Linked .bashrc_fedora to .bashrc"
-    fi
-    if [ -f "$HOME/.bash_profile_fedora" ]; then
-        ln -sf "$HOME/.bash_profile_fedora" "$HOME/.bash_profile"
-        echo "    Linked .bash_profile_fedora to .bash_profile"
-    fi
-else
-    echo "› No specific tweaks for this OS."
-fi
+# echo "› Applying distribution-specific tweaks..."
+# if [[ "$OS_ID" == "fedora" ]]; then
+#     echo "  - Applying Fedora-specific bash configuration..."
+#     if [ -f "$HOME/.bashrc_fedora" ]; then
+#         ln -sf "$HOME/.bashrc_fedora" "$HOME/.bashrc"
+#         echo "    Linked .bashrc_fedora to .bashrc"
+#     fi
+#     if [ -f "$HOME/.bash_profile_fedora" ]; then
+#         ln -sf "$HOME/.bash_profile_fedora" "$HOME/.bash_profile"
+#         echo "    Linked .bash_profile_fedora to .bash_profile"
+#     fi
+# else
+#     echo "› No specific tweaks for this OS."
+# fi
 
 
 # --- Finalization ---
