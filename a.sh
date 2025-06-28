@@ -46,7 +46,7 @@ OS_ID=""
 if command_exists dnf; then
     echo "›› Fedora detected. Using DNF."
     INSTALL_CMD="sudo dnf install -y"
-    BUILD_DEPS_GROUP='@development-tools'
+    BUILD_DEPS_GROUP='@development-tools libX11-devel libXft-devel libXinerama-devel'
     OS_ID="fedora"
 elif command_exists apt-get; then
     echo "›› Debian/Ubuntu based system detected. Using APT."
