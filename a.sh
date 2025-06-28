@@ -6,7 +6,7 @@
 # This script automates the setup of my configuration files and tools.
 # It performs the following actions:
 #   1. Detects the Linux distribution (Fedora, Debian/Ubuntu, Arch).
-#   2. Installs all necessary dependencies, including build tools.
+#   2. Installs all necessary dependencies, including build tools and Xorg.
 #   3. Uses GNU Stow to symlink configuration files into the correct locations.
 #      - Links user configs to the $HOME directory.
 #      - Links system-wide configs to the /etc directory using sudo.
@@ -73,6 +73,15 @@ echo "› Installing all required dependencies..."
 echo "  - Installing core tools..."
 install_packages "git stow"
 
+# Add Xorg server installation here
+echo "  - Installing X.Org server..."
+if [[ "$OS_ID" == "fedora" ]]; then
+    install_packages "xorg-x11-server-Xorg"
+elif [[ "$OS_ID" == "ubuntu" || "$OS_ID" == "debian" ]]; then # Assuming common OS_ID for Debian/Ubuntu
+    install_packages "xserver-xorg xinit" # xinit is crucial for startx
+elif [[ "$OS_ID" == "arch" ]]; then
+    install_packages "xorg-server xorg-xinit" # xorg-xinit for startx
+fi
 
 echo "  - Installing build tools for dwm/slock..."
 install_packages $BUILD_DEPS_GROUP
