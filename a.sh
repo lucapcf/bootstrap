@@ -150,7 +150,7 @@ fi
 # Step 5: Build and install Suckless tools (dwm, slock)
 echo -e "${CYAN}> Compiling and installing Suckless tools (dwm, slock)...${NC}"
 # Use a variable to avoid repeating the path. $HOME may not be set in some sudo envs.
-SUCKLESS_CONFIG_DIR="$(eval echo ~"$USER")/.config/suckless"
+SUCKLESS_CONFIG_DIR="$(eval echo ~"$USER")/.config"
 
 if [ -d "$SUCKLESS_CONFIG_DIR/dwm" ]; then
     echo "  - Building dwm..."
