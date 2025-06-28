@@ -109,14 +109,14 @@ for dir in */; do
     HOME_PACKAGES+="$pkg_name "
 done
 
-stow --overwrite -R -t "$HOME" $HOME_PACKAGES
+stow --adopt -R -t "$HOME" $HOME_PACKAGES
 echo "✅ User dotfiles linked successfully."
 
 
 # Step 4: Stow system-level configuration files (to /etc)
 echo "› Symlinking system-wide configurations to /etc..."
 if [ -d "etc" ]; then
-    sudo stow --overwrite -R -t / etc
+    sudo stow --adopt -R -t / etc
     echo "✅ System-wide configs linked successfully."
 else
     echo "› No 'etc' package found, skipping."
