@@ -1,0 +1,52 @@
+@define-color foreground #eeeeee;
+@define-color foreground-inactive #aaaaaa;
+@define-color MyGreen rgba(57, 255, 20, 1.0);
+
+* {
+    font-family: JetBrainsMono Nerd Font;
+    font-size: 17px;
+    padding: 0;
+    margin: 0;
+}
+
+#waybar {
+    color: @foreground;
+    background: transparent;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    padding: 0 10px;
+}
+
+#workspaces button {
+    color: rgba(57, 255, 20, 0.5);
+    padding: 0 10px;
+}
+
+#workspaces button.empty {
+    color: @foreground-inactive;
+}
+
+#workspaces button.active {
+    color: @MyGreen;
+}
+
+#workspaces button:hover {
+    background: @MyGreen;
+}
+
+#wireplumber,
+#backlight,
+#network,
+#tray {
+    padding-right: 1em 
+}
+
+#wireplumber.muted {
+    color: red;
+}
+

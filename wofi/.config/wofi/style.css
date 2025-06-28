@@ -1,0 +1,55 @@
+@define-color MyGreen rgba(57, 255, 20, 1.0);
+
+window {
+    margin: 0px;
+    border: 2px solid @MyGreen;
+    background-color: rgba(0, 0, 0, 0.8);
+    font-size: 18px;
+}
+
+#input {
+    margin: 5px;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+}
+
+#inner-box {
+    margin: 5px;
+    border: none;
+}
+
+#outer-box {
+    margin: 5px;
+    border: none;
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#text {
+    margin: 5px;
+    border: none;
+    color: rgba(255, 255, 255, 1);
+} 
+
+#entry.activatable #text {
+    color: blue;
+}
+
+#entry > * {
+    color: @MyGreen;
+}
+
+#entry:selected {
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 5px;
+    outline: none;
+}
+
+#entry:selected #text {
+    color: @MyGreen;
+}
+

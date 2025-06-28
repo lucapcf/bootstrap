@@ -1,0 +1,81 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 24,
+    "spacing": 5,
+
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["clock"],
+    "modules-right": ["wireplumber", "memory", "cpu", "temperature", "backlight", "network", "tray"],
+
+    "hyprland/workspaces": {
+        "format": "<span size='larger'>{icon}</span>",
+        "on-click": "activate",
+        "format-icons": {
+            "active": "\uf444",
+            "default": "\uf4c3"
+        },
+        "icon-size": 10,
+        "sort-by-number": true,
+        "persistent-workspaces": {
+            "1": [],
+            "2": [],
+            "3": [],
+            "4": [],
+            "5": [],
+            "6": [],
+            "7": [],
+            "8": [],
+            "9": [],
+            "10": [],
+        }
+    },
+
+    "clock": {
+        "interval": 1,
+        "format": "{:%Y/%m/%d | %H:%M:%S}"
+    },
+
+    "wireplumber": {
+        "format": "󰕾 {volume}%",
+        "max-volume": 150,
+        "format-muted": "󰝟 ",
+        "scroll-step": 5
+    },
+
+    "backlight": {
+        "format": "\udb80\udcdf  {percent}%"
+    },
+
+    "memory": {
+        "interval": 1,
+        "format": " {used:0.2f}GB"
+    },
+
+    "cpu": {
+        "interval": 1,
+        "format": " {usage}%",
+        "max-length": 10
+    },
+
+    "temperature": {
+        "format": "  {temperatureC}°C"
+    },
+
+    "network": {
+        "format": "",
+        "format-ethernet": "\udb83\udc9d",
+        "format-wifi": "{icon}",
+        "format-disconnected": "\udb83\udc9c",
+        "format-icons": ["\udb82\udd2f", "\udb82\udd1f", "\udb82\udd22", "\udb82\udd25", "\udb82\udd28"],
+        "tooltip-format-wifi": "{essid} ({signalStrength}%)",
+        "tooltip-format-ethernet": "{ifname}",
+        "tooltip-format-disconnected": "Disconnected",
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing": 16
+    }
+}
+
