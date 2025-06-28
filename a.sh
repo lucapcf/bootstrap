@@ -66,7 +66,7 @@ OS_ID=""
 if command_exists dnf; then
     echo ">> Fedora detected. Using DNF."
     INSTALL_CMD="sudo dnf install -y"
-    BUILD_DEPS_GROUP='@development-tools libX11-devel libXft-devel libXinerama-devel'
+    BUILD_DEPS_GROUP='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
     OS_ID="fedora"
 elif command_exists apt-get; then
     echo ">> Debian/Ubuntu based system detected. Using APT."
@@ -95,7 +95,7 @@ install_packages "git stow"
 # Add Xorg server installation here
 echo "  - Installing X.Org server..."
 if [[ "$OS_ID" == "fedora" ]]; then
-    install_packages "xorg-x11-server-Xorg"
+    install_packages "xorg-x11-server-Xorg xorg-x11-xinit"
 elif [[ "$OS_ID" == "ubuntu" || "$OS_ID" == "debian" ]]; then # Assuming common OS_ID for Debian/Ubuntu
     install_packages "xserver-xorg xinit" # xinit is crucial for startx
 elif [[ "$OS_ID" == "arch" ]]; then
@@ -188,6 +188,8 @@ fi
 
 # --- Finalization ---
 echo ""
+git restore .
+source "$HOME/.bashrc"
 echo -e "${YELLOW}🎉 All done! Your system is configured.${NC}" 
 echo -e "${CYAN}Recommendations:${NC}"
 echo "  - Please REBOOT or log out and log back in for all changes to take effect."
