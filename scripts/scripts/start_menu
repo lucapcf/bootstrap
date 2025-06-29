@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Check if X is not already running
+if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
+  echo "Select your window manager/desktop environment:"
+  echo "1) Hyperland (Wayland)"
+  echo "2) dwm (X11)"
+  echo "3) Cinnamon (X11)"
+  read -p "Enter your choice (1/2/3): " -r choice
+
+  case $choice in
+    1)
+      exec Hyprland
+      ;;
+    2)
+      startx ~/.xinitrc dwm
+      ;;
+    3)
+      startx ~/.xinitrc cinnamon
+      ;;
+    *)
+      echo "Invalid choice. Exiting..."
+      ;;
+  esac
+fi
+

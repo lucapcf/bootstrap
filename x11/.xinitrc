@@ -1,9 +1,3 @@
-#!/bin/sh
-#
-# ~/.xinitrc
-#
-# Executed by startx (run your window manager from here)
-
 # Redirect stdout and stderr to a log file
 exec > ~/startx.log 2>&1
 
@@ -11,22 +5,22 @@ exec > ~/startx.log 2>&1
 xbindkeys &
 
 # Default session is kde-wayland if none is provided as an argument
-session=${1:-'kde-x11'}
+session=${1:-'cinnamon'}
 
 case $session in
   dwm)
     # Starting compositor
     picom -f &
     
-    xrandr --output HDMI-1 --auto --primary
-    xrandr --output eDP-1 --auto --left-of HDMI-1
+    #xrandr --output DP-1 --auto --primary
+    #xrandr --output eDP-1 --auto --left-of HDMI-1
 
     # Setting wallpaper
-    ~/scripts/fehbg_slideshow &
+     ~/scripts/fehbg_slideshow &
 
     # Lockscreen
     ~/xssstate/xsidle.sh slock &
-    xset s 900
+     xset s 900
 
     # Starting DWM status
     ~/dwm/scripts/status.sh &
@@ -34,12 +28,10 @@ case $session in
     # Start DWM
     exec dwm
     ;;
-  kde-x11)
-    exec startplasma-x11
+  cinnamon)
+    exec cinnamon-session
     ;;
-  # No known session, try to run it as a command
   *)
-    exec $1
     ;;
 esac
 
