@@ -19,8 +19,6 @@
 # ==============================================================================
 
 # --- Configuration & Global Variables ---
-# Exit immediately if a command exits with a non-zero status.
-# set -e
 
 # --- Color Definitions ---
 # Regular Colors
@@ -31,15 +29,12 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Global variables for OS detection and package installation commands
+# Global variables for package installation
 INSTALL_CMD=""
-
-# Global package lists - these will be populated after OS detection
-CUSTOM_PACKAGES=""
+ADDITIONAL_PACKAGES=""
 CORE_TOOLS_PACKAGES=""
 XORG_SERVER_PACKAGES=""
 BUILD_TOOLS_PACKAGES=""
-DESKTOP_APPS_COMMON=""
 DESKTOP_ENV_WM_PACKAGES=""
 FONT_INSTALL_TOOLS_PACKAGES=""
 
@@ -82,13 +77,10 @@ install_packages() {
 detect_and_set_packages() {
     echo -e "${CYAN}> Detecting package manager and setting package lists...${NC}"
 
-    # Global package lists - these will be populated based on package manager
-    CUSTOM_PACKAGES="fastfetch tree tldr bash-completion firefox"
+    ADDITIONAL_PACKAGES="alacritty kitty neovim picom tmux waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium st libreoffice qbittorrent"
     CORE_TOOLS_PACKAGES="git stow"
-    DESKTOP_APPS_COMMON="alacritty kitty neovim picom tmux waybar wofi feh xbindkeys"
-    FONT_INSTALL_TOOLS_PACKAGES="wget unzip" # These are common for all distros
+    FONT_INSTALL_TOOLS_PACKAGES="wget unzip"
 
-    # --- OS and Package Manager Detection and Package List Assignment ---
     if command_exists dnf; then
         echo ">> DNF (Fedora-like) detected."
         echo -e "${CYAN}> Updating DNF repositories and upgrading all packages...${NC}"
@@ -96,10 +88,10 @@ detect_and_set_packages() {
         sudo dnf upgrade -y
         echo -e "${GREEN}✅ DNF repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo dnf install -y"
-        CUSTOM_PACKAGES="$CUSTOM_PACKAGES ShellCheck"
+        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES ShellCheck"
         BUILD_TOOLS_PACKAGES='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
         XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit"
-        DESKTOP_ENV_WM_PACKAGES="hyprland @cinnamon-desktop" # DNF-specific group for Cinnamon
+        DESKTOP_ENV_WM_PACKAGES="hyprland @cinnamon-desktop"
     elif command_exists apt-get; then
         echo ">> APT (Debian/Ubuntu-like) detected."
         echo -e "${CYAN}› Updating APT repositories and upgrading all packages...${NC}"
@@ -107,20 +99,20 @@ detect_and_set_packages() {
         sudo apt-get upgrade -y
         echo -e "${GREEN}✅ APT repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo apt-get install -y"
-        CUSTOM_PACKAGES="$CUSTOM_PACKAGES shellcheck"
+        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="build-essential libx11-dev libxft-dev libxinerama-dev libxrandr-dev"
         XORG_SERVER_PACKAGES="xserver-xorg xinit"
-        DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon" # Standard package name for Cinnamon on APT systems
+        DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon"
     elif command_exists pacman; then
         echo ">> Pacman (Arch Linux-like) detected."
         echo -e "${CYAN}› Updating Pacman repositories and upgrading all packages...${NC}"
-        sudo pacman -Syu --noconfirm  # Synchronize and Upgrade (this command does both)
+        sudo pacman -Syu --noconfirm
         echo -e "${GREEN}✅ Pacman repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo pacman -S --noconfirm --needed"
-        CUSTOM_PACKAGES="$CUSTOM_PACKAGES shellcheck"
+        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="base-devel libx11 libxft libxinerama"
         XORG_SERVER_PACKAGES="xorg-server xorg-xinit"
-        DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon" # Standard package name for Cinnamon on Arch
+        DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon"
     else
         echo -e "${RED}⛔ ERROR: Could not find a known package manager (dnf, apt-get, pacman).${NC}"
         echo -e "${YELLOW}Please install dependencies manually and re-run this script.${NC}"
@@ -133,11 +125,15 @@ detect_and_set_packages() {
 install_all_dependencies() {
     echo -e "${CYAN}> Installing all required dependencies...${NC}"
 
-    echo "  - installing core tools (git, stow)..."
-    install_packages "$CORE_TOOLS_PACKAGES"
+    if [ -n "$CORE_TOOLS_PACKAGES" ]; then
+        echo "  - installing core tools (git, stow)..."
+        install_packages "$CORE_TOOLS_PACKAGES"
+    fi
     
-    echo "  - installing custom packages (tree, tldr etc)..."
-    install_packages "$CUSTOM_PACKAGES"
+    if [ -n "$ADDITIONAL_PACKAGES" ]; then
+        echo "  - installing additional packages (tree, tldr etc)..."
+        install_packages "$ADDITIONAL_PACKAGES"
+    fi
 
     if [ -n "$XORG_SERVER_PACKAGES" ]; then
         echo "  - Installing X.Org server..."
@@ -148,9 +144,6 @@ install_all_dependencies() {
         echo "  - Installing build tools for dwm/slock..."
         install_packages "$BUILD_TOOLS_PACKAGES"
     fi
-
-    echo "  - Installing common desktop applications and utilities..."
-    install_packages "$DESKTOP_APPS_COMMON"
 
     if [ -n "$DESKTOP_ENV_WM_PACKAGES" ]; then
         echo "  - Installing desktop environments/window managers..."
@@ -163,12 +156,23 @@ install_all_dependencies() {
 install_nerd_font() {
     echo -e "${CYAN}> Installing Ubuntu Mono Nerd Font...${NC}"
 
+    FONT_NAME_CHECK="UbuntuMono Nerd Font"
+    FONT_DIR="$HOME/.local/share/fonts/UbuntuMonoNerdFont"
+
+    echo -e "${CYAN}> Checking if ${FONT_NAME_CHECK} is already installed...${NC}"
+    if fc-list | grep -qi "$FONT_NAME_CHECK"; then
+        echo -e "${GREEN}✅ ${FONT_NAME_CHECK} is already installed.${NC}"
+        echo -e "${YELLOW}If you wish to reinstall, please remove the directory ${FONT_DIR} and try again.${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}Font not found, proceeding with installation.${NC}"
+    fi
+
     echo -e "${CYAN}> Checking for required tools (wget, unzip)...${NC}"
     install_packages "$FONT_INSTALL_TOOLS_PACKAGES"
     echo -e "${GREEN}✅ Required tools are present.${NC}"
 
     FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/UbuntuMono.zip"
-    FONT_DIR="$HOME/.local/share/fonts/UbuntuMonoNerdFont"
     FONT_ZIP="UbuntuMono.zip"
 
     echo -e "${CYAN}> Creating font directory: ${FONT_DIR}${NC}"
@@ -235,7 +239,6 @@ stow_system_configs() {
 
 compile_suckless_tools() {
     echo -e "${CYAN}> Compiling and installing Suckless tools (dwm, slock)...${NC}"
-    # Use a variable to avoid repeating the path. $HOME may not be set in some sudo envs.
     SUCKLESS_CONFIG_DIR="$(eval echo ~"$USER")/.config"
 
     if [ -d "$SUCKLESS_CONFIG_DIR/dwm" ]; then
@@ -281,7 +284,6 @@ finalize_setup() {
     echo -e "${CYAN}> Finalizing setup...${NC}"
     # Restore any untracked files or changes in the current git repository.
     # This is useful if 'stow --adopt' leaves files modified that are not symlinks.
-    # Ensure this script is run from the root of your dotfiles repository.
     git restore .
 
     # Enable login via TTY
@@ -307,8 +309,8 @@ finalize_setup
 
 echo -e "${GREEN}✨ Setup script finished successfully!${NC}"
 
-# Source the .bashrc to apply changes immediatly to the current shell and run start_menu
-if [ -f "$HOME/.bashrc" ]; then
+# Source the .bash_profile to apply changes immediatly to the current shell and run start_menu
+if [ -f "$HOME/.bash_profile" ]; then
     source "$HOME/.bash_profile"
     echo "    Sourced ~/.bash_profile for immediate effect."
 fi

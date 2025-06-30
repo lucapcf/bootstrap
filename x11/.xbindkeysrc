@@ -90,11 +90,14 @@
 "firefox"
     Mod4 + y
 
-"dolphin"
+"nemo"
     Mod4 + p
 
-"alacritty"
+"$TERMINAL"
     Mod4 + Return
+
+"shutdown -P now"
+    Mod4 + Shift + period
 
 #"xterm -geom 50x20+20+20"
 #   Shift+Mod2+alt + s

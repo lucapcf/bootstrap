@@ -1,14 +1,9 @@
 #!/bin/bash
 
-# User specific aliases, envs and functions
-if [ -d ~/.config/.bashrc.d ]; then
-    for rc in ~/.config/.bashrc.d/*; do
-        if [ -f "$rc" ]; then
-            . "$rc"
-        fi
-    done
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
 fi
-unset rc
 
 # Check if X is not already running
 if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then

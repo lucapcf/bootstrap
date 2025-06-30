@@ -1,7 +1,7 @@
 # .bashrc
 
-# If not running interactively, don't do anything
-[[ $- != *i* ]] && return
+# Get system info
+fastfetch
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
@@ -17,7 +17,7 @@ export PATH
 # Uncomment the following line if you don't like systemctl's auto-paging feature:
 # export SYSTEMD_PAGER=
 
-# User specific aliases and functions
+# User specific aliases, envs and functions
 if [ -d ~/.config/.bashrc.d ]; then
     for rc in ~/.config/.bashrc.d/*; do
         if [ -f "$rc" ]; then

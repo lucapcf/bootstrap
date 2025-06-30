@@ -43,13 +43,6 @@ static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 
-static const char *termcmd[]  = { "st", NULL };
-static const char *discordcmd[] = { "flatpak", "run", "com.discordapp.Discord", NULL };
-static const char *spotifycmd[] = { "flatpak", "run", "com.spotify.Client", NULL };
-static const char *firefoxcmd[] = { "firefox", NULL };
-static const char *shutcmd[] = { "shutdown", "-P", "now", NULL };
-
-
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      tile },    /* first entry is default */
@@ -74,13 +67,8 @@ static const char *dmenucmd[]     = { "dmenu_run", "-m", dmenumon, "-fn", dmenuf
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
-  { MODKEY,                       XK_Return,    spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_d,         spawn,          {.v = dmenucmd } },
-  { MODKEY,                       XK_g,         spawn,          {.v = discordcmd } },
-  { MODKEY,                       XK_s,         spawn,          {.v = spotifycmd } },
-  { MODKEY,                       XK_y,         spawn,          {.v = firefoxcmd } },
 	{ MODKEY|ShiftMask,             XK_BackSpace, quit,           {0} },
-	{ MODKEY|ShiftMask,             XK_period,    spawn,          {.v = shutcmd } },
 	{ MODKEY,                       XK_b,         togglebar,      {0} },
 	{ MODKEY,                       XK_j,         focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,         focusstack,     {.i = -1 } },

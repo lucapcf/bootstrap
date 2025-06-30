@@ -6,20 +6,20 @@ get_time() {
 }
 
 # Utility function to get battery status and capacity
-get_battery() {
-    BAT=$(cat /sys/class/power_supply/BAT0/capacity)
-    BAT_STATUS=$(cat /sys/class/power_supply/BAT0/status)
+# get_battery() {
+#     BAT=$(cat /sys/class/power_supply/BAT0/capacity)
+#     BAT_STATUS=$(cat /sys/class/power_supply/BAT0/status)
 
-    case $BAT_STATUS in
-        "Not charging") BAT_ICON="󱉝 " ;;
-        "Discharging")  BAT_ICON="󰁾" ;;
-        "Charging")     BAT_ICON=" " ;;
-        "Full")         BAT_ICON="󰁹 󰸞" ;;
-        *)              BAT_ICON="󰂑 " ;;
-    esac
+#     case $BAT_STATUS in
+#         "Not charging") BAT_ICON="󱉝 " ;;
+#         "Discharging")  BAT_ICON="󰁾" ;;
+#         "Charging")     BAT_ICON=" " ;;
+#         "Full")         BAT_ICON="󰁹 󰸞" ;;
+#         *)              BAT_ICON="󰂑 " ;;
+#     esac
 
-    echo "$BAT_ICON $BAT%"
-}
+#     echo "$BAT_ICON $BAT%"
+# }
 
 # Utility function to get volume level
 get_volume() {
@@ -46,137 +46,138 @@ get_volume() {
 
 
 # Utility function to get memory usage
-get_memory() {
-    TOTAL_KB=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
-    FREE_KB=$(awk '/MemFree:/ {print $2}' /proc/meminfo)
-    BUFFERS_KB=$(awk '/Buffers:/ {print $2}' /proc/meminfo)
-    CACHED_KB=$(awk '/^Cached:/ {print $2}' /proc/meminfo)
+# get_memory() {
+#     TOTAL_KB=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
+#     FREE_KB=$(awk '/MemFree:/ {print $2}' /proc/meminfo)
+#     BUFFERS_KB=$(awk '/Buffers:/ {print $2}' /proc/meminfo)
+#     CACHED_KB=$(awk '/^Cached:/ {print $2}' /proc/meminfo)
     
-    TOTAL_GB=$(bc <<< "scale=2; $TOTAL_KB / 1024 / 1024")
-    USED_GB=$(bc <<< "scale=2; ($TOTAL_KB - $FREE_KB - $BUFFERS_KB - $CACHED_KB) / 1024 / 1024")
+#     TOTAL_GB=$(bc <<< "scale=2; $TOTAL_KB / 1024 / 1024")
+#     USED_GB=$(bc <<< "scale=2; ($TOTAL_KB - $FREE_KB - $BUFFERS_KB - $CACHED_KB) / 1024 / 1024")
     
-    printf " %.2fGB/%.2fGB" "$USED_GB" "$TOTAL_GB"
-}
+#     printf " %.2fGB/%.2fGB" "$USED_GB" "$TOTAL_GB"
+# }
 
 # Utility function to get CPU usage
-get_cpu() {
-    CPU_IDLE=$(top -bn1 | grep "Cpu(s)" | awk '{print $8}')
-    CPU_USAGE=$(echo "100 - $CPU_IDLE" | bc)
+# get_cpu() {
+#     CPU_IDLE=$(top -bn1 | grep "Cpu(s)" | awk '{print $8}')
+#     CPU_USAGE=$(echo "100 - $CPU_IDLE" | bc)
 
-    printf " %.2f%%" "$CPU_USAGE"
-}
+#     printf " %.2f%%" "$CPU_USAGE"
+# }
 
 # Utility function to get WiFi status
-get_wifi() {
-    WIFI=$(nmcli connection show --active | awk '$3 == "wifi" {print $1}')
-    echo "  ${WIFI:-No Signal}"
-}
+# get_wifi() {
+#     WIFI=$(nmcli connection show --active | awk '$3 == "wifi" {print $1}')
+#     echo "  ${WIFI:-No Signal}"
+# }
 
 
 # Network monitor function
-get_network_usage() {
-    local interface
-    interface=$(ip route | grep default | awk '{print $5}')
+# get_network_usage() {
+#     local interface
+#     interface=$(ip route | grep default | awk '{print $5}')
 
-    if [ -z "$interface" ]; then
-        echo " 0KB/s  0KB/s"
-        return
-    fi
+#     if [ -z "$interface" ]; then
+#         echo " 0KB/s  0KB/s"
+#         return
+#     fi
     
-    local rx_new
-    rx_new=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
-    local tx_new
-    tx_new=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
+#     local rx_new
+#     rx_new=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
+#     local tx_new
+#     tx_new=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
 
-    # Read previous values from files
-    local rx_old
-    rx_old=$(cat "$1")
-    local tx_old
-    tx_old=$(cat "$2")
+#     # Read previous values from files
+#     local rx_old
+#     rx_old=$(cat "$1")
+#     local tx_old
+#     tx_old=$(cat "$2")
 
-    local rx_rate
-    rx_rate=$(echo "scale=2; ($rx_new - $rx_old)" | bc)
-    local tx_rate
-    tx_rate=$(echo "scale=2; ($tx_new - $tx_old)" | bc)
+#     local rx_rate
+#     rx_rate=$(echo "scale=2; ($rx_new - $rx_old)" | bc)
+#     local tx_rate
+#     tx_rate=$(echo "scale=2; ($tx_new - $tx_old)" | bc)
     
-    local rx_unit
-    rx_unit="B/s"
-    local tx_unit
-    tx_unit="B/s"
+#     local rx_unit
+#     rx_unit="B/s"
+#     local tx_unit
+#     tx_unit="B/s"
 
-    # Convert RX and TX rates to appropriate units
-    if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
-        rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
-        rx_unit="KB/s"
-    fi
-    if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
-        rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
-        rx_unit="MB/s"
-    fi
-    if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
-        rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
-        rx_unit="GB/s"
-    fi
+#     # Convert RX and TX rates to appropriate units
+#     if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
+#         rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
+#         rx_unit="KB/s"
+#     fi
+#     if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
+#         rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
+#         rx_unit="MB/s"
+#     fi
+#     if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
+#         rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
+#         rx_unit="GB/s"
+#     fi
 
-    if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
-        tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
-        tx_unit="KB/s"
-    fi
-    if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
-        tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
-        tx_unit="MB/s"
-    fi
-    if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
-        tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
-        tx_unit="GB/s"
-    fi
+#     if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
+#         tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
+#         tx_unit="KB/s"
+#     fi
+#     if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
+#         tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
+#         tx_unit="MB/s"
+#     fi
+#     if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
+#         tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
+#         tx_unit="GB/s"
+#     fi
 
-    # Save current values for next iteration
-    echo "$rx_new" > "$1"
-    echo "$tx_new" > "$2"
+#     # Save current values for next iteration
+#     echo "$rx_new" > "$1"
+#     echo "$tx_new" > "$2"
 
-    echo " ${rx_rate}${rx_unit}  ${tx_rate}${tx_unit}"
-}
+#     echo " ${rx_rate}${rx_unit}  ${tx_rate}${tx_unit}"
+# }
 
 update_status() {
 
-    RX_FILE="$XDG_RUNTIME_DIR/.network_rx"
-    TX_FILE="$XDG_RUNTIME_DIR/.network_tx"
+    # RX_FILE="$XDG_RUNTIME_DIR/.network_rx"
+    # TX_FILE="$XDG_RUNTIME_DIR/.network_tx"
 
     # Detect the active network interface (excluding loopback and inactive interfaces)
-    interface=$(ip route | grep default | awk '{print $5}')
+    # interface=$(ip route | grep default | awk '{print $5}')
 
-    rx=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
-    tx=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
-    echo "$rx" > "$RX_FILE"
-    echo "$tx" > "$TX_FILE"
+    # rx=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
+    # tx=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
+    # echo "$rx" > "$RX_FILE"
+    # echo "$tx" > "$TX_FILE"
     
     while true
     do
         TIME=$(get_time)
-        BATTERY=$(get_battery)
+        # BATTERY=$(get_battery)
         VOLUME=$(get_volume)
-        MEMORY=$(get_memory)
-        CPU=$(get_cpu)
-        WIFI=$(get_wifi)
-        NET_USAGE=$(get_network_usage "$RX_FILE" "$TX_FILE")
+        # MEMORY=$(get_memory)
+        # CPU=$(get_cpu)
+        # WIFI=$(get_wifi)
+        # NET_USAGE=$(get_network_usage "$RX_FILE" "$TX_FILE")
         
-        INFO=" $NET_USAGE | $WIFI | $CPU | $MEMORY | $VOLUME | $BATTERY | $TIME "
+        INFO=" $VOLUME | $TIME "
         
         # Low battery warning
-        BAT=$(echo "$BATTERY" | grep -o '[0-9]*')
-        if [ "$BAT" -le 20 ] && [[ "$BATTERY" == *"󰁾"* ]]; then
-            xsetroot -name "   Low Battery!    "
-            sleep 1
-            xsetroot -name "$INFO"
-            sleep 5
-        else
-            xsetroot -name "$INFO"
-        fi
+        # BAT=$(echo "$BATTERY" | grep -o '[0-9]*')
+        # if [ "$BAT" -le 20 ] && [[ "$BATTERY" == *"󰁾"* ]]; then
+        #     xsetroot -name "   Low Battery!    "
+        #     sleep 1
+        #     xsetroot -name "$INFO"
+        #     sleep 5
+        # else
+        #     xsetroot -name "$INFO"
+        # fi
         
         sleep 1
     done
 }
 
-update_status
+update_status &
+
 
