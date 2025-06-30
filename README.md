@@ -23,13 +23,13 @@ This repository contains my personal configuration files (dotfiles) for a stream
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/your-dotfiles-repo.git](https://github.com/your-username/your-dotfiles-repo.git) ~/.dotfiles
+    git clone [https://github.com/lucapcf/workstation_setup.git](https://github.com/lucapcf/workstation_setup.git) ~/.dotfiles
     ```
     (Replace `https://github.com/your-username/your-dotfiles-repo.git` with the actual URL of your dotfiles repository).
 
 2.  **Navigate into the dotfiles directory:**
     ```bash
-    cd ~/.dotfiles
+    cd ~/workstation_setup
     ```
 
 3.  **Run the setup script:**
@@ -84,4 +84,3 @@ This repository contains my personal configuration files (dotfiles) for a stream
 ## 🤝 Contributing
 
 Feel free to fork this repository and adapt it to your needs. If you have suggestions for improvements or find issues, please open an issue or submit a pull request.
-
