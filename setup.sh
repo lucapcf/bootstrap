@@ -72,6 +72,10 @@ detect_and_set_packages() {
     # --- OS and Package Manager Detection and Package List Assignment ---
     if command_exists dnf; then
         echo ">> DNF (Fedora-like) detected."
+        echo -e "${CYAN}> Updating DNF repositories and upgrading all packages...${NC}"
+        sudo dnf update -y
+        sudo dnf upgrade -y
+        echo -e "${GREEN}✅ DNF repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo dnf install -y"
         CUSTOM_PACKAGES="$CUSTOM_PACKAGES Shellcheck"
         BUILD_TOOLS_PACKAGES='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
@@ -79,7 +83,10 @@ detect_and_set_packages() {
         DESKTOP_ENV_WM_PACKAGES="hyprland @cinnamon-desktop" # DNF-specific group for Cinnamon
     elif command_exists apt-get; then
         echo ">> APT (Debian/Ubuntu-like) detected."
-        sudo apt-get update # Run update here as it's common for APT systems
+        echo -e "${CYAN}› Updating APT repositories and upgrading all packages...${NC}"
+        sudo apt-get update
+        sudo apt-get upgrade -y
+        echo -e "${GREEN}✅ APT repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo apt-get install -y"
         CUSTOM_PACKAGES="$CUSTOM_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="build-essential libx11-dev libxft-dev libxinerama-dev libxrandr-dev"
@@ -87,6 +94,9 @@ detect_and_set_packages() {
         DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon" # Standard package name for Cinnamon on APT systems
     elif command_exists pacman; then
         echo ">> Pacman (Arch Linux-like) detected."
+        echo -e "${CYAN}› Updating Pacman repositories and upgrading all packages...${NC}"
+        sudo pacman -Syu --noconfirm  # Synchronize and Upgrade (this command does both)
+        echo -e "${GREEN}✅ Pacman repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo pacman -S --noconfirm --needed"
         CUSTOM_PACKAGES="$CUSTOM_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="base-devel libx11 libxft libxinerama"
@@ -134,7 +144,7 @@ install_all_dependencies() {
 install_nerd_font() {
     echo -e "${CYAN}> Installing Ubuntu Mono Nerd Font...${NC}"
 
-    echo -e "${CYAN}› Checking for required tools (wget, unzip)...${NC}"
+    echo -e "${CYAN}> Checking for required tools (wget, unzip)...${NC}"
     install_packages "$FONT_INSTALL_TOOLS_PACKAGES"
     echo -e "${GREEN}✅ Required tools are present.${NC}"
 
@@ -142,10 +152,10 @@ install_nerd_font() {
     FONT_DIR="$HOME/.local/share/fonts/UbuntuMonoNerdFont"
     FONT_ZIP="UbuntuMono.zip"
 
-    echo -e "${CYAN}› Creating font directory: ${FONT_DIR}${NC}"
+    echo -e "${CYAN}> Creating font directory: ${FONT_DIR}${NC}"
     mkdir -p "$FONT_DIR"
 
-    echo -e "${CYAN}› Downloading Ubuntu Mono Nerd Font...${NC}"
+    echo -e "${CYAN}> Downloading Ubuntu Mono Nerd Font...${NC}"
     if wget -O "/tmp/$FONT_ZIP" "$FONT_URL"; then
         echo -e "${GREEN}✅ Font downloaded successfully.${NC}"
     else
@@ -153,7 +163,7 @@ install_nerd_font() {
         return 1
     fi
 
-    echo -e "${CYAN}› Unzipping font into ${FONT_DIR}...${NC}"
+    echo -e "${CYAN}> Unzipping font into ${FONT_DIR}...${NC}"
     if unzip -o "/tmp/$FONT_ZIP" -d "$FONT_DIR"; then
         echo -e "${GREEN}✅ Font unzipped successfully.${NC}"
     else
@@ -161,14 +171,14 @@ install_nerd_font() {
         return 1
     fi
 
-    echo -e "${CYAN}› Updating font cache...${NC}"
+    echo -e "${CYAN}> Updating font cache...${NC}"
     if fc-cache -fv; then
         echo -e "${GREEN}✅ Font cache updated.${NC}"
     else
         echo -e "${YELLOW}Warning: Failed to update font cache. You may need to run 'fc-cache -fv' manually.${NC}"
     fi
 
-    echo -e "${CYAN}› Cleaning up temporary files...${NC}"
+    echo -e "${CYAN}> Cleaning up temporary files...${NC}"
     rm -f "/tmp/$FONT_ZIP"
     echo -e "${GREEN}✅ Cleanup complete.${NC}"
 
