@@ -20,7 +20,7 @@
 
 # --- Configuration & Global Variables ---
 # Exit immediately if a command exits with a non-zero status.
-set -e
+# set -e
 
 # --- Color Definitions ---
 # Regular Colors
@@ -51,11 +51,30 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Function to prompt user to continue or exit on failure
+prompt_on_failure() {
+    echo -e "${RED}⛔ ERROR: Failed to install a package!${NC}"
+    echo -e "${YELLOW}Do you want to continue with the setup despite this error? (y/N)${NC}"
+    read -r response
+    case "$response" in
+        [yY])
+            echo -e "${YELLOW}Continuing with setup...${NC}"
+            return 0
+            ;;
+        *)
+            echo -e "${RED}Exiting setup due to error.${NC}"
+            exit 1
+            ;;
+    esac
+}
+
 # Function to install packages using the globally defined INSTALL_CMD
 install_packages() {
     echo "    Installing: $@"
     # The eval is used to correctly execute the command string with arguments
-    eval "$INSTALL_CMD $@"
+    if ! eval "$INSTALL_CMD $@"; then
+        prompt_on_failure
+    fi
 }
 
 # --- Setup Steps Functions ---
@@ -77,7 +96,7 @@ detect_and_set_packages() {
         sudo dnf upgrade -y
         echo -e "${GREEN}✅ DNF repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo dnf install -y"
-        CUSTOM_PACKAGES="$CUSTOM_PACKAGES Shellcheck"
+        CUSTOM_PACKAGES="$CUSTOM_PACKAGES ShellCheck"
         BUILD_TOOLS_PACKAGES='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
         XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit"
         DESKTOP_ENV_WM_PACKAGES="hyprland @cinnamon-desktop" # DNF-specific group for Cinnamon
