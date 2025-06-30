@@ -83,7 +83,7 @@ detect_and_set_packages() {
     echo -e "${CYAN}> Detecting package manager and setting package lists...${NC}"
 
     # Global package lists - these will be populated based on package manager
-    CUSTOM_PACKAGES="tree tldr bash-completion firefox"
+    CUSTOM_PACKAGES="fastfetch tree tldr bash-completion firefox"
     CORE_TOOLS_PACKAGES="git stow"
     DESKTOP_APPS_COMMON="alacritty kitty neovim picom tmux waybar wofi feh xbindkeys"
     FONT_INSTALL_TOOLS_PACKAGES="wget unzip" # These are common for all distros

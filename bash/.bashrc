@@ -18,8 +18,8 @@ export PATH
 # export SYSTEMD_PAGER=
 
 # User specific aliases and functions
-if [ -d ~/.bashrc.d ]; then
-    for rc in ~/.bashrc.d/*; do
+if [ -d ~/.config/.bashrc.d ]; then
+    for rc in ~/.config/.bashrc.d/*; do
         if [ -f "$rc" ]; then
             . "$rc"
         fi
