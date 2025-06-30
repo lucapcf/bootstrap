@@ -4,20 +4,20 @@ This repository contains my personal configuration files (dotfiles) for a stream
 
 ## ✨ Features
 
-* **[span_0](start_span)Multi-Distribution Support**: Automatically detects and adapts installations for Fedora, Debian/Ubuntu-based systems, and Arch Linux[span_0](end_span).
-* **[span_1](start_span)Automated Dependency Installation**: Installs core tools (git, stow), X.Org server, build essentials, and a suite of desktop applications (Alacritty, Kitty, Neovim, Picom, tmux, Waybar, Wofi, Feh, xbindkeys, fastfetch)[span_1](end_span).
-* **[span_2](start_span)Hybrid Desktop Environment/Window Manager Setup**: Supports the installation of Hyprland (Wayland) and Cinnamon (X11), along with compiling `dwm` and `slock` from source[span_2](end_span).
-* **[span_3](start_span)GNU Stow Integration**: Uses GNU Stow to intelligently symlink configuration files from this repository to their correct locations in your home directory (`$HOME`) and system-wide (`/etc`)[span_3](end_span).
-* **[span_4](start_span)Nerd Font Installation**: Automatically downloads and installs Ubuntu Mono Nerd Font for enhanced terminal aesthetics and icon support[span_4](end_span).
-* **[span_5](start_span)Modular Bash Configuration**: Organizes `~/.bashrc` into a `~/.bashrc.d` directory for cleaner management of aliases, functions, and environment variables[span_5](end_span).
-* **[span_6](start_span)Interactive Session Selector**: A `start_session` script (referenced in `bash_profile.txt`) allows interactive selection between different desktop environments/window managers (Hyprland, dwm, Cinnamon) upon console login[span_6](end_span).
+* **Multi-Distribution Support**: Automatically detects and adapts installations for Fedora, Debian/Ubuntu-based systems, and Arch Linux.
+* **Automated Dependency Installation**: Installs core tools (git, stow), X.Org server, build essentials, and a suite of desktop applications (Alacritty, Kitty, Neovim, Picom, tmux, Waybar, Wofi, Feh, xbindkeys, fastfetch).
+* **Hybrid Desktop Environment/Window Manager Setup**: Supports the installation of Hyprland (Wayland) and Cinnamon (X11), along with compiling `dwm` and `slock` from source.
+* **GNU Stow Integration**: Uses GNU Stow to intelligently symlink configuration files from this repository to their correct locations in your home directory (`$HOME`) and system-wide (`/etc`).
+* **Nerd Font Installation**: Automatically downloads and installs Ubuntu Mono Nerd Font for enhanced terminal aesthetics and icon support.
+* **Modular Bash Configuration**: Organizes `~/.bashrc` into a `~/.bashrc.d` directory for cleaner management of aliases, functions, and environment variables.
+* **Interactive Session Selector**: A `start_session` script (referenced in `bash_profile.txt`) allows interactive selection between different desktop environments/window managers (Hyprland, dwm, Cinnamon) upon console login.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 * A fresh installation of Fedora, Debian/Ubuntu-based, or Arch Linux.
-* [span_7](start_span)`git` should be installed (the setup script will attempt to install it if missing)[span_7](end_span).
+* `git` should be installed (the setup script will attempt to install it if missing).
 
 ### Installation
 
@@ -37,14 +37,51 @@ This repository contains my personal configuration files (dotfiles) for a stream
     ./setup.sh
     ```
     The script will:
-    * [span_8](start_span)Detect your operating system and package manager[span_8](end_span).
-    * [span_9](start_span)Prompt for `sudo` password when necessary for package installations and system-wide symlinks[span_9](end_span).
-    * [span_10](start_span)Install all required software[span_10](end_span).
-    * [span_11](start_span)Symlink your dotfiles into place[span_11](end_span).
-    * [span_12](start_span)Compile and install `dwm` and `slock` (if their source directories exist in your dotfiles)[span_12](end_span).
-    * [span_13](start_span)Install Ubuntu Mono Nerd Font[span_13](end_span).
+    * Detect your operating system and package manager.
+    * Prompt for `sudo` password when necessary for package installations and system-wide symlinks.
+    * Install all required software.
+    * Symlink your dotfiles into place.
+    * Compile and install `dwm` and `slock` (if their source directories exist in your dotfiles).
+    * Install Ubuntu Mono Nerd Font.
 
 ## 📁 Repository Structure
 
-The repository is organized to work seamlessly with GNU Stow:
+* `setup.sh` - The main setup script
+* `README.md` - This file
+* `.bashrc` - The main bash config, sources `~/.bashrc.d/*`
+* `.bash_profile` - Login shell config, sources `~/.bashrc`
+* `connfig.txt` - (Example content, typically individual files in `.bashrc.d/`)
+* `alacritty/` - Alacritty config
+* `bashrc.d/` - Directory for modular bash configurations
+    * `aliases.sh` - Contains shell aliases
+    * `completion.sh` - Enables command auto-completion
+    * `environment.sh` - Sets various environment variables
+    * `fastfetch.sh` - Runs fastfetch on shell startup
+    * `keybindings.sh` - Defines custom keybindings (e.g., vi mode Ctrl-l)
+    * `ls_colors.sh` - Defines colors for `ls` command
+    * `prompt.sh` - Custom shell prompt with Git branch info
+* `nvim/` - Neovim configuration
+* `picom/` - Picom (compositor) configuration
+* `tmux/` - Tmux configuration
+* `waybar/` - Waybar config (for Hyprland)
+* `wofi/` - Wofi config (Wayland launcher)
+* `Xresources` - X resources for X11 applications
+* `scripts/` - Custom scripts (e.g., `start_session`)
+    * `start_session` - Script to select WM/DE on TTY1 login
+* `etc/` - Directory for system-wide configs symlinked to `/etc`
+    * `X11/`
+        * `xinit/`
+            * `xinitrc` - X server startup script
+            * ... and other system-wide configurations
+
+
+## 🛠️ Post-Installation
+
+1.  **Reboot or Log Out:** For all changes to take effect, especially environment variables and font installations, it is highly recommended to **reboot your system or log out and log back in**.
+2.  **Terminal Font:** Configure your terminal emulator (e.g., Alacritty, Kitty) to use "UbuntuMono Nerd Font" or "UbuntuMono Nerd Font Mono".
+3.  **Neovim Plugins:** Open Neovim and run `:checkhealth` or allow your plugin manager to install plugins.
+
+## 🤝 Contributing
+
+Feel free to fork this repository and adapt it to your needs. If you have suggestions for improvements or find issues, please open an issue or submit a pull request.
 
