@@ -35,6 +35,7 @@ NC='\033[0m' # No Color
 INSTALL_CMD=""
 
 # Global package lists - these will be populated after OS detection
+CUSTOM_PACKAGES=""
 CORE_TOOLS_PACKAGES=""
 XORG_SERVER_PACKAGES=""
 BUILD_TOOLS_PACKAGES=""
@@ -63,14 +64,16 @@ detect_and_set_packages() {
     echo -e "${CYAN}> Detecting package manager and setting package lists...${NC}"
 
     # Global package lists - these will be populated based on package manager
+    CUSTOM_PACKAGES="tree tldr bash-completion firefox"
     CORE_TOOLS_PACKAGES="git stow"
-    DESKTOP_APPS_COMMON="alacritty fastfetch kitty neovim picom tmux waybar wofi feh xbindkeys"
+    DESKTOP_APPS_COMMON="alacritty kitty neovim picom tmux waybar wofi feh xbindkeys"
     FONT_INSTALL_TOOLS_PACKAGES="wget unzip" # These are common for all distros
 
     # --- OS and Package Manager Detection and Package List Assignment ---
     if command_exists dnf; then
         echo ">> DNF (Fedora-like) detected."
         INSTALL_CMD="sudo dnf install -y"
+        CUSTOM_PACKAGES="$CUSTOM_PACKAGES Shellcheck"
         BUILD_TOOLS_PACKAGES='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
         XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit"
         DESKTOP_ENV_WM_PACKAGES="hyprland @cinnamon-desktop" # DNF-specific group for Cinnamon
@@ -78,12 +81,14 @@ detect_and_set_packages() {
         echo ">> APT (Debian/Ubuntu-like) detected."
         sudo apt-get update # Run update here as it's common for APT systems
         INSTALL_CMD="sudo apt-get install -y"
+        CUSTOM_PACKAGES="$CUSTOM_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="build-essential libx11-dev libxft-dev libxinerama-dev libxrandr-dev"
         XORG_SERVER_PACKAGES="xserver-xorg xinit"
         DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon" # Standard package name for Cinnamon on APT systems
     elif command_exists pacman; then
         echo ">> Pacman (Arch Linux-like) detected."
         INSTALL_CMD="sudo pacman -S --noconfirm --needed"
+        CUSTOM_PACKAGES="$CUSTOM_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="base-devel libx11 libxft libxinerama"
         XORG_SERVER_PACKAGES="xorg-server xorg-xinit"
         DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon" # Standard package name for Cinnamon on Arch
@@ -99,8 +104,11 @@ detect_and_set_packages() {
 install_all_dependencies() {
     echo -e "${CYAN}> Installing all required dependencies...${NC}"
 
-    echo "  - Installing core tools (git, stow)..."
+    echo "  - installing core tools (git, stow)..."
     install_packages "$CORE_TOOLS_PACKAGES"
+    
+    echo "  - installing custom packages (tree, tldr etc)..."
+    install_packages "$CUSTOM_PACKAGES"
 
     if [ -n "$XORG_SERVER_PACKAGES" ]; then
         echo "  - Installing X.Org server..."
@@ -247,11 +255,8 @@ finalize_setup() {
     # Ensure this script is run from the root of your dotfiles repository.
     git restore .
 
-    # Source the .bashrc to apply immediate changes to the current shell
-    if [ -f "$HOME/.bashrc" ]; then
-        source "$HOME/.bashrc"
-        echo "    Sourced ~/.bashrc for immediate effect."
-    fi
+    # Enable login via TTY
+    sudo systemctl set-default multi-user.target
 
     echo -e "${YELLOW}🎉 All done! Your system is configured.${NC}"
     echo -e "${CYAN}Recommendations:${NC}"
@@ -272,3 +277,10 @@ compile_suckless_tools
 finalize_setup
 
 echo -e "${GREEN}✨ Setup script finished successfully!${NC}"
+
+# Source the .bashrc to apply changes immediatly to the current shell and run start_menu
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bash_profile"
+    echo "    Sourced ~/.bash_profile for immediate effect."
+fi
+
