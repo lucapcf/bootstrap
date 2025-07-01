@@ -8,8 +8,7 @@
 #   1. Detects the Linux distribution (Fedora, Debian, Arch).
 #   2. Installs all necessary dependencies, including build tools and Xorg.
 #   3. Uses GNU Stow to symlink configuration files into the correct locations.
-#      - Links user configs to the $HOME directory.
-#      - Links system-wide configs to the /etc directory using sudo.
+#      - Links user configs to the $HOME and /usr directory.
 #   4. Compiles and installs dwm and slock from the source in the repo.
 #   5. Applies distribution-specific tweaks (e.g., for Fedora's bash files).
 #
@@ -77,7 +76,7 @@ install_packages() {
 detect_and_set_packages() {
     echo -e "${CYAN}> Detecting package manager and setting package lists...${NC}"
 
-    ADDITIONAL_PACKAGES="alacritty kitty neovim picom tmux waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium st libreoffice qbittorrent bc awk"
+    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium st libreoffice qbittorrent bc awk"
     CORE_TOOLS_PACKAGES="git stow"
     FONT_INSTALL_TOOLS_PACKAGES="wget unzip"
 
@@ -228,13 +227,22 @@ stow_user_configs() {
 }
 
 stow_system_configs() {
-    echo -e "${CYAN}> Symlinking system-wide configurations to /etc...${NC}"
+    echo -e "${CYAN}> Symlinking system-wide configurations to /usr...${NC}"
     if [ -d "etc" ]; then
         sudo stow --adopt -R -t / etc
         echo -e "${GREEN}✅ System-wide configs linked successfully.${NC}"
     else
-        echo "> No 'etc' package found, skipping system-wide configs."
+        echo "> No 'etc' package found, skipping user-wide configs."
     fi
+
+    echo -e "${CYAN}> Symlinking user-wide configurations to /usr...${NC}"
+    if [ -d "usr" ]; then
+        sudo stow --adopt -R -t / usr
+        echo -e "${GREEN}✅ User-wide configs linked successfully.${NC}"
+    else
+        echo "> No 'usr' package found, skipping user-wide configs."
+    fi
+
 }
 
 compile_suckless_tools() {

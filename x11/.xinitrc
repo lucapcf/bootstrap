@@ -23,6 +23,7 @@ case $session in
     xautolock -time 10 -locker "slock" -detectsleep &
 
     # Starting DWM status
+    pkill status.sh
     ~/.config/dwm/scripts/status.sh &
 
     # Start DWM
