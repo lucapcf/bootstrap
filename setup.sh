@@ -77,7 +77,7 @@ install_packages() {
 detect_and_set_packages() {
     echo -e "${CYAN}> Detecting package manager and setting package lists...${NC}"
 
-    ADDITIONAL_PACKAGES="alacritty kitty neovim picom tmux waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium st libreoffice qbittorrent"
+    ADDITIONAL_PACKAGES="alacritty kitty neovim picom tmux waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium st libreoffice qbittorrent bc awk"
     CORE_TOOLS_PACKAGES="git stow"
     FONT_INSTALL_TOOLS_PACKAGES="wget unzip"
 
@@ -90,7 +90,7 @@ detect_and_set_packages() {
         INSTALL_CMD="sudo dnf install -y"
         ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES ShellCheck"
         BUILD_TOOLS_PACKAGES='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
-        XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit"
+        XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit xautolock xsetroot bc"
         DESKTOP_ENV_WM_PACKAGES="hyprland @cinnamon-desktop"
     elif command_exists apt-get; then
         echo ">> APT (Debian/Ubuntu-like) detected."
@@ -101,7 +101,7 @@ detect_and_set_packages() {
         INSTALL_CMD="sudo apt-get install -y"
         ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="build-essential libx11-dev libxft-dev libxinerama-dev libxrandr-dev"
-        XORG_SERVER_PACKAGES="xserver-xorg xinit"
+        XORG_SERVER_PACKAGES="xserver-xorg xinit xautolock xsetroot bc"
         DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon"
     elif command_exists pacman; then
         echo ">> Pacman (Arch Linux-like) detected."
@@ -111,7 +111,7 @@ detect_and_set_packages() {
         INSTALL_CMD="sudo pacman -S --noconfirm --needed"
         ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="base-devel libx11 libxft libxinerama"
-        XORG_SERVER_PACKAGES="xorg-server xorg-xinit"
+        XORG_SERVER_PACKAGES="xorg-server xorg-xinit xautolock xsetroot bc"
         DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon"
     else
         echo -e "${RED}⛔ ERROR: Could not find a known package manager (dnf, apt-get, pacman).${NC}"

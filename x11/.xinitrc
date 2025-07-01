@@ -12,18 +12,18 @@ case $session in
     # Starting compositor
     picom -f &
     
-    #xrandr --output DP-1 --auto --primary
-    #xrandr --output eDP-1 --auto --left-of HDMI-1
+    # Set accordingly
+    #xrandr --output DP-1 3440x1440 --primary
+    #xrandr --output HDMI-1 1920x1080 --left-of DP-1
 
     # Setting wallpaper
      ~/scripts/fehbg_slideshow &
 
     # Lockscreen
-    ~/xssstate/xsidle.sh slock &
-     xset s 900
+    xautolock -time 10 -locker "slock" -detectsleep &
 
     # Starting DWM status
-    ~/dwm/scripts/status.sh &
+    ~/.config/dwm/scripts/status.sh &
 
     # Start DWM
     exec dwm
