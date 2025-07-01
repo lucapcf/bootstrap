@@ -6,20 +6,24 @@ get_time() {
 }
 
 # Utility function to get battery status and capacity
-# get_battery() {
-#     BAT=$(cat /sys/class/power_supply/BAT0/capacity)
-#     BAT_STATUS=$(cat /sys/class/power_supply/BAT0/status)
+get_battery() {
+    if [ ! -d "$BATTERY_PATH" ]; then
+        # No battery found, ideally a desktop...
+        echo ""
+        return 1
+    fi
 
-#     case $BAT_STATUS in
-#         "Not charging") BAT_ICON="󱉝 " ;;
-#         "Discharging")  BAT_ICON="󰁾" ;;
-#         "Charging")     BAT_ICON=" " ;;
-#         "Full")         BAT_ICON="󰁹 󰸞" ;;
-#         *)              BAT_ICON="󰂑 " ;;
-#     esac
-
-#     echo "$BAT_ICON $BAT%"
-# }
+    BAT=$(cat /sys/class/power_supply/BAT0/capacity)
+    BAT_STATUS=$(cat /sys/class/power_supply/BAT0/status)
+     case $BAT_STATUS in
+        "Not charging") BAT_ICON="󱉝 " ;;
+        "Discharging")  BAT_ICON="󰁾" ;;
+        "Charging")     BAT_ICON=" " ;;
+        "Full")         BAT_ICON="󰁹 󰸞" ;;
+        *)              BAT_ICON="󰂑 " ;;
+    esac
+    echo "$BAT_ICON $BAT%"
+}
 
 # Utility function to get volume level
 get_volume() {
@@ -46,25 +50,25 @@ get_volume() {
 
 
 # Utility function to get memory usage
-# get_memory() {
-#     TOTAL_KB=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
-#     FREE_KB=$(awk '/MemFree:/ {print $2}' /proc/meminfo)
-#     BUFFERS_KB=$(awk '/Buffers:/ {print $2}' /proc/meminfo)
-#     CACHED_KB=$(awk '/^Cached:/ {print $2}' /proc/meminfo)
-    
-#     TOTAL_GB=$(bc <<< "scale=2; $TOTAL_KB / 1024 / 1024")
-#     USED_GB=$(bc <<< "scale=2; ($TOTAL_KB - $FREE_KB - $BUFFERS_KB - $CACHED_KB) / 1024 / 1024")
-    
-#     printf " %.2fGB/%.2fGB" "$USED_GB" "$TOTAL_GB"
-# }
+get_memory() {
+    TOTAL_KB=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
+    FREE_KB=$(awk '/MemFree:/ {print $2}' /proc/meminfo)
+    BUFFERS_KB=$(awk '/Buffers:/ {print $2}' /proc/meminfo)
+    CACHED_KB=$(awk '/^Cached:/ {print $2}' /proc/meminfo)
+
+    TOTAL_GB=$(bc <<< "scale=2; $TOTAL_KB / 1024 / 1024")
+    USED_GB=$(bc <<< "scale=2; ($TOTAL_KB - $FREE_KB - $BUFFERS_KB - $CACHED_KB) / 1024 / 1024")
+
+    printf " %.2fGB/%.2fGB" "$USED_GB" "$TOTAL_GB"
+}
 
 # Utility function to get CPU usage
-# get_cpu() {
-#     CPU_IDLE=$(top -bn1 | grep "Cpu(s)" | awk '{print $8}')
-#     CPU_USAGE=$(echo "100 - $CPU_IDLE" | bc)
+get_cpu() {
+    CPU_IDLE=$(top -bn1 | grep "Cpu(s)" | awk '{print $8}')
+    CPU_USAGE=$(echo "100 - $CPU_IDLE" | bc)
 
-#     printf " %.2f%%" "$CPU_USAGE"
-# }
+    printf " %.2f%%" "$CPU_USAGE"
+}
 
 # Utility function to get WiFi status
 # get_wifi() {
@@ -154,15 +158,16 @@ update_status() {
     while true
     do
         TIME=$(get_time)
-        # BATTERY=$(get_battery)
+        BATTERY=$(get_battery)
         VOLUME=$(get_volume)
-        # MEMORY=$(get_memory)
-        # CPU=$(get_cpu)
+        MEMORY=$(get_memory)
+        CPU=$(get_cpu)
         # WIFI=$(get_wifi)
         # NET_USAGE=$(get_network_usage "$RX_FILE" "$TX_FILE")
         
-        INFO=" $VOLUME | $TIME "
+        INFO=" $MEMORY | $CPU | $VOLUME | $BATTERY | $TIME "
         
+        xsetroot -name "$INFO"
         # Low battery warning
         # BAT=$(echo "$BATTERY" | grep -o '[0-9]*')
         # if [ "$BAT" -le 20 ] && [[ "$BATTERY" == *"󰁾"* ]]; then
