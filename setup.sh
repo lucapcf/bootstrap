@@ -47,27 +47,47 @@ command_exists() {
 
 # Function to prompt user to continue or exit on failure
 prompt_on_failure() {
-    echo -e "${RED}⛔ ERROR: Failed to install a package!${NC}"
-    echo -e "${YELLOW}Do you want to continue with the setup despite this error? (y/N)${NC}"
+    local error_message="$1"
+    echo -e "${RED}⛔ ERROR: ${error_message}${NC}"
+    echo -e "${YELLOW}Do you want to continue with the setup despite this error? (Y/n)${NC}"
     read -r response
     case "$response" in
-        [yY])
-            echo -e "${YELLOW}Continuing with setup...${NC}"
-            return 0
-            ;;
-        *)
+        [nN])
             echo -e "${RED}Exiting setup due to error.${NC}"
             exit 1
+            ;;
+        *)
+            echo -e "${YELLOW}Continuing with setup...${NC}"
+            return 0
             ;;
     esac
 }
 
+
 # Function to install packages using the globally defined INSTALL_CMD
 install_packages() {
-    echo "    Installing: $@"
-    # The eval is used to correctly execute the command string with arguments
-    if ! eval "$INSTALL_CMD $@"; then
-        prompt_on_failure
+    local packages_to_install=("$@")
+    echo "       Installing: ${packages_to_install[*]}"
+
+    local failure_count=0
+    for pkg in "${packages_to_install[@]}"; do
+        echo -e "${CYAN}       Attempting to install: ${pkg}${NC}"
+        local current_install_cmd="$INSTALL_CMD $pkg"
+        if eval "$current_install_cmd"; then
+            echo -e "${GREEN}       ✅ Successfully installed: ${pkg}${NC}"
+        else
+            echo -e "${RED}       ❌ Failed to install: ${pkg}${NC}"
+            failure_count=$((failure_count + 1))
+            prompt_on_failure "Package installation failed for: ${pkg}"
+        fi
+    done
+
+    if [ "$failure_count" -gt 0 ]; then
+        echo -e "${YELLOW}Warning: Completed package installation with ${failure_count} failures.${NC}"
+        return 1
+    else
+        echo -e "${GREEN}✅ All packages in this group installed successfully.${NC}"
+        return 0
     fi
 }
 
@@ -126,27 +146,27 @@ install_all_dependencies() {
 
     if [ -n "$CORE_TOOLS_PACKAGES" ]; then
         echo "  - installing core tools (git, stow)..."
-        install_packages "$CORE_TOOLS_PACKAGES"
+        install_packages $CORE_TOOLS_PACKAGES
     fi
     
     if [ -n "$ADDITIONAL_PACKAGES" ]; then
         echo "  - installing additional packages (tree, tldr etc)..."
-        install_packages "$ADDITIONAL_PACKAGES"
+        install_packages $ADDITIONAL_PACKAGES
     fi
 
     if [ -n "$XORG_SERVER_PACKAGES" ]; then
         echo "  - Installing X.Org server..."
-        install_packages "$XORG_SERVER_PACKAGES"
+        install_packages $XORG_SERVER_PACKAGES
     fi
 
     if [ -n "$BUILD_TOOLS_PACKAGES" ]; then
         echo "  - Installing build tools for dwm/slock..."
-        install_packages "$BUILD_TOOLS_PACKAGES"
+        install_packages $BUILD_TOOLS_PACKAGES
     fi
 
     if [ -n "$DESKTOP_ENV_WM_PACKAGES" ]; then
         echo "  - Installing desktop environments/window managers..."
-        install_packages "$DESKTOP_ENV_WM_PACKAGES"
+        install_packages $DESKTOP_ENV_WM_PACKAGES
     fi
 
     echo -e "${GREEN}✅ Dependencies installed.${NC}"
@@ -168,7 +188,7 @@ install_nerd_font() {
     fi
 
     echo -e "${CYAN}> Checking for required tools (wget, unzip)...${NC}"
-    install_packages "$FONT_INSTALL_TOOLS_PACKAGES"
+    install_packages $FONT_INSTALL_TOOLS_PACKAGES
     echo -e "${GREEN}✅ Required tools are present.${NC}"
 
     FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/UbuntuMono.zip"
