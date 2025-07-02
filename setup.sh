@@ -96,12 +96,12 @@ install_packages() {
 detect_and_set_packages() {
     echo -e "${CYAN}> Detecting package manager and setting package lists...${NC}"
 
-    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium st libreoffice qbittorrent bc awk"
+    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium st dmenu libreoffice qbittorrent bc awk"
     CORE_TOOLS_PACKAGES="git stow"
     FONT_INSTALL_TOOLS_PACKAGES="wget unzip"
 
     if command_exists dnf; then
-        echo ">> DNF (Fedora-like) detected."
+        echo ">> DNF detected."
         echo -e "${CYAN}> Updating DNF repositories and upgrading all packages...${NC}"
         sudo dnf update -y
         sudo dnf upgrade -y
@@ -112,7 +112,7 @@ detect_and_set_packages() {
         XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit xautolock xsetroot bc"
         DESKTOP_ENV_WM_PACKAGES="hyprland @cinnamon-desktop"
     elif command_exists apt-get; then
-        echo ">> APT (Debian/Ubuntu-like) detected."
+        echo ">> APT detected."
         echo -e "${CYAN}› Updating APT repositories and upgrading all packages...${NC}"
         sudo apt-get update
         sudo apt-get upgrade -y
@@ -123,7 +123,7 @@ detect_and_set_packages() {
         XORG_SERVER_PACKAGES="xserver-xorg xinit xautolock xsetroot bc"
         DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon"
     elif command_exists pacman; then
-        echo ">> Pacman (Arch Linux-like) detected."
+        echo ">> Pacman detected."
         echo -e "${CYAN}› Updating Pacman repositories and upgrading all packages...${NC}"
         sudo pacman -Syu --noconfirm
         echo -e "${GREEN}✅ Pacman repositories updated and packages upgraded.${NC}"

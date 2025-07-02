@@ -2,5 +2,5 @@
 
 kill "$(pgrep -f fehbg_ | grep -v '^'"$$"'$')" 2> /dev/null || :
 
-feh --no-fehbg --bg-fill /home/lucapcf/Wallpapers/fixed/*
+feh --no-fehbg --bg-fill $WALLPAPER_DIR/Cole_Thomas_The_Course_of_Empire_The_Arcadian_or_Pastoral_State_1836.jpg
 

@@ -33,3 +33,5 @@ ln=1;36:\
 ex=1;32:\
 *.gz=1;31:*.jpg=1;35:*.jpeg=1;35:*.png=1;35:*.gif=1;35:*.bmp=1;35:*.pdf=1;33:*.txt=1;33:*.md=1;33:*.c=1;32:*.h=1;32:*.cpp=1;32:*.java=1;32:*.py=1;32:*.sh=1;32:*.pl=1;32:*.rb=1;32:*.html=1;31:*.css=1;34:*.js=1;33:*.php=1;34"
 
+export WALLPAPER_DIR="$HOME/Cloud/Wallpapers/Wallpapers_blur"
+
