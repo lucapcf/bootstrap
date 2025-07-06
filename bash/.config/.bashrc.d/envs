@@ -8,7 +8,9 @@ export VIDEO_PLAYER=vlc
 # Terminal emulator
 export TERMINAL=alacritty
 
-export FILEMANAGER=nemo
+export FILE_MANAGER=nemo
+
+export BROWSER=firefox
 
 # Set default editor
 export EDITOR=nvim

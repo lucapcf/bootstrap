@@ -1,8 +1,8 @@
-# .bash_profile
+#!/bin/bash
 
 # Get the aliases and functions
 if [ -f ~/.bashrc ]; then
-    . ~/.bashrc
+  . ~/.bashrc
 fi
 
 # Run session-related startup script if on tty1 and no DISPLAY

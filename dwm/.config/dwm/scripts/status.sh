@@ -9,13 +9,13 @@ get_time() {
 get_battery() {
     if [ ! -d "$BATTERY_PATH" ]; then
         # No battery found, ideally a desktop...
-        echo ""
+        echo " 󰸞"
         return 1
     fi
 
     BAT=$(cat /sys/class/power_supply/BAT0/capacity)
     BAT_STATUS=$(cat /sys/class/power_supply/BAT0/status)
-     case $BAT_STATUS in
+    case $BAT_STATUS in
         "Not charging") BAT_ICON="󱉝 " ;;
         "Discharging")  BAT_ICON="󰁾" ;;
         "Charging")     BAT_ICON=" " ;;
@@ -27,11 +27,10 @@ get_battery() {
 
 # Utility function to get volume level
 get_volume() {
-    #VOLUME=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\d+%' | head -1)
-    VOLUME=$(pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(( SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,')
+    VOLUME=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\d+(?=%)' | head -1)
     MUTE_STATUS=$(pactl get-sink-mute @DEFAULT_SINK@)
     
-    if [ "$MUTE_STATUS" == "Mute: yes" ]; then
+    if [ "$MUTE_STATUS" == "Mute: yes" ] || [ "$VOLUME" -le 0 ]; then
         VOLUME_STATUS=" "
     else
         VOLUME_STATUS=" "
@@ -42,12 +41,9 @@ get_volume() {
         pactl set-sink-volume 0 100%
         VOLUME="100"
     fi
-    #if [ "$VOLUME" -le 0 ] || [ "$MUTE_STATUS" == "Mute: yes" ]; then
-		#    VOLUME_STATUS=" "
-	  #fi
+
     echo "$VOLUME_STATUS $VOLUME%"
 }
-
 
 # Utility function to get memory usage
 get_memory() {
@@ -71,89 +67,94 @@ get_cpu() {
 }
 
 # Utility function to get WiFi status
-# get_wifi() {
-#     WIFI=$(nmcli connection show --active | awk '$3 == "wifi" {print $1}')
-#     echo "  ${WIFI:-No Signal}"
-# }
+get_network() {
+    NETWORK=$(nmcli connection show --active | awk '{print $(NF-1)}' | grep -E 'wifi|ethernet' || true)
 
+    if [[ "$NETWORK" == "wifi" ]]; then
+        echo "  ${NETWORK}"
+    elif [[ "$NETWORK" == "ethernet" ]]; then
+        echo "  ${NETWORK}"
+    else
+        echo "  No Signal"
+    fi
+}
 
 # Network monitor function
-# get_network_usage() {
-#     local interface
-#     interface=$(ip route | grep default | awk '{print $5}')
+get_network_usage() {
+    local interface
+    interface=$(ip route | grep default | awk '{print $5}')
 
-#     if [ -z "$interface" ]; then
-#         echo " 0KB/s  0KB/s"
-#         return
-#     fi
-    
-#     local rx_new
-#     rx_new=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
-#     local tx_new
-#     tx_new=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
+    if [ -z "$interface" ]; then
+        echo " 0KB/s  0KB/s"
+        return
+    fi
 
-#     # Read previous values from files
-#     local rx_old
-#     rx_old=$(cat "$1")
-#     local tx_old
-#     tx_old=$(cat "$2")
+    local rx_new
+    rx_new=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
+    local tx_new
+    tx_new=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
 
-#     local rx_rate
-#     rx_rate=$(echo "scale=2; ($rx_new - $rx_old)" | bc)
-#     local tx_rate
-#     tx_rate=$(echo "scale=2; ($tx_new - $tx_old)" | bc)
-    
-#     local rx_unit
-#     rx_unit="B/s"
-#     local tx_unit
-#     tx_unit="B/s"
+    # Read previous values from files
+    local rx_old
+    rx_old=$(cat "$1")
+    local tx_old
+    tx_old=$(cat "$2")
 
-#     # Convert RX and TX rates to appropriate units
-#     if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
-#         rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
-#         rx_unit="KB/s"
-#     fi
-#     if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
-#         rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
-#         rx_unit="MB/s"
-#     fi
-#     if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
-#         rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
-#         rx_unit="GB/s"
-#     fi
+    local rx_rate
+    rx_rate=$(echo "scale=2; ($rx_new - $rx_old)" | bc)
+    local tx_rate
+    tx_rate=$(echo "scale=2; ($tx_new - $tx_old)" | bc)
 
-#     if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
-#         tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
-#         tx_unit="KB/s"
-#     fi
-#     if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
-#         tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
-#         tx_unit="MB/s"
-#     fi
-#     if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
-#         tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
-#         tx_unit="GB/s"
-#     fi
+    local rx_unit
+    rx_unit="B/s"
+    local tx_unit
+    tx_unit="B/s"
 
-#     # Save current values for next iteration
-#     echo "$rx_new" > "$1"
-#     echo "$tx_new" > "$2"
+    # Convert RX and TX rates to appropriate units
+    if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
+        rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
+        rx_unit="KB/s"
+    fi
+    if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
+        rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
+        rx_unit="MB/s"
+    fi
+    if [ "$(echo "$rx_rate > 1024" | bc -l)" -eq 1 ]; then
+        rx_rate=$(echo "scale=2; $rx_rate / 1024" | bc)
+        rx_unit="GB/s"
+    fi
+    if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
+    tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
+        tx_unit="KB/s"
+    fi
+    if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
+        tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
+        tx_unit="MB/s"
+    fi
+    if [ "$(echo "$tx_rate > 1024" | bc -l)" -eq 1 ]; then
+        tx_rate=$(echo "scale=2; $tx_rate / 1024" | bc)
+        tx_unit="GB/s"
+    fi
 
-#     echo " ${rx_rate}${rx_unit}  ${tx_rate}${tx_unit}"
-# }
+    # Save current values for next iteration
+    echo "$rx_new" > "$1"
+    echo "$tx_new" > "$2"
+
+    echo " ${rx_rate}${rx_unit}  ${tx_rate}${tx_unit}"
+}
 
 update_status() {
 
-    # RX_FILE="$XDG_RUNTIME_DIR/.network_rx"
-    # TX_FILE="$XDG_RUNTIME_DIR/.network_tx"
+    RX_FILE="$XDG_RUNTIME_DIR/.network_rx"
+    TX_FILE="$XDG_RUNTIME_DIR/.network_tx"
 
     # Detect the active network interface (excluding loopback and inactive interfaces)
-    # interface=$(ip route | grep default | awk '{print $5}')
+    interface=$(ip route | grep default | awk '{print $5}')
 
-    # rx=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
-    # tx=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
-    # echo "$rx" > "$RX_FILE"
-    # echo "$tx" > "$TX_FILE"
+    rx=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
+    tx=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
+    echo "$rx" > "$RX_FILE"
+    echo "$tx" > "$TX_FILE"
     
     while true
     do
@@ -162,26 +163,28 @@ update_status() {
         VOLUME=$(get_volume)
         MEMORY=$(get_memory)
         CPU=$(get_cpu)
-        # WIFI=$(get_wifi)
-        # NET_USAGE=$(get_network_usage "$RX_FILE" "$TX_FILE")
+        NET=$(get_network)
+        NET_USAGE=$(get_network_usage "$RX_FILE" "$TX_FILE")
         
-        INFO=" $MEMORY | $CPU | $VOLUME | $BATTERY | $TIME "
+        INFO=" $MEMORY | $CPU | $VOLUME | $NET | $NET_USAGE | $BATTERY | $TIME "
         
-        xsetroot -name "$INFO"
-        # Low battery warning
-        # BAT=$(echo "$BATTERY" | grep -o '[0-9]*')
-        # if [ "$BAT" -le 20 ] && [[ "$BATTERY" == *"󰁾"* ]]; then
-        #     xsetroot -name "   Low Battery!    "
-        #     sleep 1
-        #     xsetroot -name "$INFO"
-        #     sleep 5
-        # else
-        #     xsetroot -name "$INFO"
-        # fi
+        if [[ -n "$BATTERY" ]]; then
+            # Low battery warning
+            BAT=$(echo "$BATTERY" | grep -o '[0-9]*')
+            
+            # Check if battery percentage is 20 or less AND if the battery icon (󰁾 - discharging) is present
+            if [ "$BAT" -le 20 ] && [[ "$BATTERY" == *"󰁾"* ]]; then
+                xsetroot -name "   Low Battery!    "
+                sleep 1
+                xsetroot -name "$INFO"
+                sleep 5
+            else
+                xsetroot -name "$INFO"
+            fi
+        fi
         
         sleep 1
     done
 }
 
 update_status &
-

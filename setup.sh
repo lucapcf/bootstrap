@@ -34,8 +34,8 @@ ADDITIONAL_PACKAGES=""
 CORE_TOOLS_PACKAGES=""
 XORG_SERVER_PACKAGES=""
 BUILD_TOOLS_PACKAGES=""
-DESKTOP_ENV_WM_PACKAGES=""
 FONT_INSTALL_TOOLS_PACKAGES=""
+WAYLAND_CONFIG=""
 
 
 # --- Helper Functions ---
@@ -96,7 +96,7 @@ install_packages() {
 detect_and_set_packages() {
     echo -e "${CYAN}> Detecting package manager and setting package lists...${NC}"
 
-    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium st dmenu libreoffice qbittorrent bc awk"
+    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium libreoffice qbittorrent bc awk"
     CORE_TOOLS_PACKAGES="git stow"
     FONT_INSTALL_TOOLS_PACKAGES="wget unzip"
 
@@ -107,31 +107,31 @@ detect_and_set_packages() {
         sudo dnf upgrade -y
         echo -e "${GREEN}✅ DNF repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo dnf install -y"
-        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES ShellCheck"
         BUILD_TOOLS_PACKAGES='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
-        XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit xautolock xsetroot bc"
-        DESKTOP_ENV_WM_PACKAGES="hyprland @cinnamon-desktop"
+        XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit xautolock xsetroot bc @cinnamon-desktop"
+        WAYLAND_CONFIG="hyprland waybar"
+        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES ShellCheck"
     elif command_exists apt-get; then
-        echo ">> APT detected."
+      echo ">> APT detected (Hyprland not available)."
         echo -e "${CYAN}› Updating APT repositories and upgrading all packages...${NC}"
         sudo apt-get update
         sudo apt-get upgrade -y
         echo -e "${GREEN}✅ APT repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo apt-get install -y"
-        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
         BUILD_TOOLS_PACKAGES="build-essential libx11-dev libxft-dev libxinerama-dev libxrandr-dev"
-        XORG_SERVER_PACKAGES="xserver-xorg xinit xautolock xsetroot bc"
-        DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon"
+        XORG_SERVER_PACKAGES="xserver-xorg xinit xautolock xsetroot bc cinnamon"
+        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
     elif command_exists pacman; then
         echo ">> Pacman detected."
         echo -e "${CYAN}› Updating Pacman repositories and upgrading all packages...${NC}"
         sudo pacman -Syu --noconfirm
         echo -e "${GREEN}✅ Pacman repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo pacman -S --noconfirm --needed"
+        CORE_TOOLS_PACKAGES="$CORE_TOOLS_PACKAGES base-devel"
+        BUILD_TOOLS_PACKAGES="libx11 libxft libxinerama"
+        XORG_SERVER_PACKAGES="xorg-server xorg-xinit xorg-xsetroot bc cinnamon"
+        WAYLAND_CONFIG="hyprland hyprpaper waybar"
         ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
-        BUILD_TOOLS_PACKAGES="base-devel libx11 libxft libxinerama"
-        XORG_SERVER_PACKAGES="xorg-server xorg-xinit xautolock xsetroot bc"
-        DESKTOP_ENV_WM_PACKAGES="hyprland cinnamon"
     else
         echo -e "${RED}⛔ ERROR: Could not find a known package manager (dnf, apt-get, pacman).${NC}"
         echo -e "${YELLOW}Please install dependencies manually and re-run this script.${NC}"
@@ -149,14 +149,30 @@ install_all_dependencies() {
         install_packages $CORE_TOOLS_PACKAGES
     fi
     
-    if [ -n "$ADDITIONAL_PACKAGES" ]; then
-        echo "  - installing additional packages (tree, tldr etc)..."
-        install_packages $ADDITIONAL_PACKAGES
-    fi
-
     if [ -n "$XORG_SERVER_PACKAGES" ]; then
         echo "  - Installing X.Org server..."
         install_packages $XORG_SERVER_PACKAGES
+    fi
+
+    if command_exists pacman; then
+        if ! command_exists yay; then
+            echo "yay is NOT installed."
+            echo -e "${CYAN}  - Installing yay.${NC}"
+            git clone https://aur.archlinux.org/yay-bin.git
+            cd yay-bin
+            makepkg -si --noconfirm
+            cd ..
+            rm -rf yay-bin
+            echo -e "${CYAN}  - Installing xautolock from AUR.${NC}"
+            yay -S --noconfirm --answeredit None --answerdiff None --removemake xautolock
+        else
+            echo "yay IS installed."
+        fi
+    fi
+
+    if [ -n "$WAYLAND_CONFIG" ]; then
+        echo "  - Installing Wayland setup..."
+        install_packages $WAYLAND_CONFIG
     fi
 
     if [ -n "$BUILD_TOOLS_PACKAGES" ]; then
@@ -164,9 +180,9 @@ install_all_dependencies() {
         install_packages $BUILD_TOOLS_PACKAGES
     fi
 
-    if [ -n "$DESKTOP_ENV_WM_PACKAGES" ]; then
-        echo "  - Installing desktop environments/window managers..."
-        install_packages $DESKTOP_ENV_WM_PACKAGES
+    if [ -n "$ADDITIONAL_PACKAGES" ]; then
+        echo "  - installing additional packages (tree, tldr etc)..."
+        install_packages $ADDITIONAL_PACKAGES
     fi
 
     echo -e "${GREEN}✅ Dependencies installed.${NC}"
@@ -236,7 +252,7 @@ stow_user_configs() {
     HOME_PACKAGES=""
     for dir in */; do
         pkg_name="${dir%/}"
-        if [[ "$pkg_name" == "etc" ]]; then # Skip 'etc' as it's for system-wide configs
+        if [[ "$pkg_name" == "etc" || "$pkg_name" == "usr" ]]; then # Skip 'etc' and 'usr' as they require a different target dir
             continue
         fi
         HOME_PACKAGES+="$pkg_name "
@@ -266,24 +282,32 @@ stow_system_configs() {
 }
 
 compile_suckless_tools() {
-    echo -e "${CYAN}> Compiling and installing Suckless tools (dwm, slock)...${NC}"
-    SUCKLESS_CONFIG_DIR="$(eval echo ~"$USER")/.config"
+    echo -e "${CYAN}> Compiling and installing Suckless tools...${NC}"
 
-    if [ -d "$SUCKLESS_CONFIG_DIR/dwm" ]; then
-        echo "  - Building dwm..."
-        (cd "$SUCKLESS_CONFIG_DIR/dwm" && sudo make clean install)
-        echo -e "${GREEN}✅ dwm installed.${NC}"
-    else
-        echo -e "${YELLOW}> DWM source not found in $SUCKLESS_CONFIG_DIR/dwm, skipping build.${NC}"
-    fi
+    local SUCKLESS_BASE_DIR="$HOME/.config"
 
-    if [ -d "$SUCKLESS_CONFIG_DIR/slock" ]; then
-        echo "  - Building slock..."
-        (cd "$SUCKLESS_CONFIG_DIR/slock" && sudo make clean install)
-        echo -e "${GREEN}✅ slock installed.${NC}"
-    else
-        echo -e "${YELLOW}> slock source not found in $SUCKLESS_CONFIG_DIR/slock, skipping build.${NC}"
-    fi
+    local suckless_apps=(
+        "dwm"
+        "st"
+        "dmenu"
+        "slock"
+    )
+
+    for app in "${suckless_apps[@]}"; do
+        local app_dir="$SUCKLESS_BASE_DIR/$app"
+
+        echo "  - Building $app from $app_dir..."
+
+        (
+            cd "$app_dir" || { echo -e "${RED}❌ Failed to change directory to $app_dir for $app.${NC}"; exit 1; }
+            sudo make clean install || { echo -e "${RED}❌ Failed to compile and install $app.${NC}"; exit 1; }
+            echo -e "${GREEN}✅ $app installed.${NC}"
+        ) || {
+            echo -e "${RED}--- Compilation for $app failed. See above errors. ---${NC}"
+        }
+    done
+
+    echo -e "${CYAN}> Suckless tools compilation process finished.${NC}"
 }
 
 # Evaluate usefullness...
@@ -310,8 +334,7 @@ compile_suckless_tools() {
 
 finalize_setup() {
     echo -e "${CYAN}> Finalizing setup...${NC}"
-    # Restore any untracked files or changes in the current git repository.
-    # This is useful if 'stow --adopt' leaves files modified that are not symlinks.
+    # Effectively overwrites the stowed files that already existed in the OS
     git restore .
 
     # Enable login via TTY
@@ -321,6 +344,7 @@ finalize_setup() {
     echo -e "${CYAN}Recommendations:${NC}"
     echo "  - Please REBOOT or log out and log back in for all changes to take effect."
     echo "  - For Neovim, you may need to open it and run :checkhealth or let the plugin manager install plugins."
+    echo "  - Populate $WALLPAPER_DIR directory with your wallpapers!"
     echo -e "${NC}"
 }
 

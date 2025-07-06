@@ -81,16 +81,16 @@
 "pavucontrol"
     Mod4 + o
 
-"com.discordapp.Discord"
+"flatpak run com.discordapp.Discord"
     Mod4 + g
 
-"com.spotify.Client"
+"flatpak run com.spotify.Client"
     Mod4 + s
 
-"firefox"
+"$BROWSER"
     Mod4 + y
 
-"nemo"
+"$FILE_MANAGER"
     Mod4 + p
 
 "$TERMINAL"
