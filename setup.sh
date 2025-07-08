@@ -17,10 +17,7 @@
 #
 # ==============================================================================
 
-# --- Configuration & Global Variables ---
-
 # --- Color Definitions ---
-# Regular Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
@@ -36,9 +33,6 @@ XORG_SERVER_PACKAGES=""
 BUILD_TOOLS_PACKAGES=""
 FONT_INSTALL_TOOLS_PACKAGES=""
 WAYLAND_CONFIG=""
-
-
-# --- Helper Functions ---
 
 # Function to check if a command exists.
 command_exists() {
@@ -62,7 +56,6 @@ prompt_on_failure() {
             ;;
     esac
 }
-
 
 # Function to install packages using the globally defined INSTALL_CMD
 install_packages() {
@@ -96,9 +89,10 @@ install_packages() {
 detect_and_set_packages() {
     echo -e "${CYAN}> Detecting package manager and setting package lists...${NC}"
 
-    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium libreoffice qbittorrent bc awk"
     CORE_TOOLS_PACKAGES="git stow"
-    FONT_INSTALL_TOOLS_PACKAGES="wget unzip"
+    XORG_SERVER_PACKAGES="xclip maim bc"
+    WAYLAND_CONFIG="wl-clipboard"
+    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium libreoffice qbittorrent bc awk"
 
     if command_exists dnf; then
         echo ">> DNF detected."
@@ -108,8 +102,8 @@ detect_and_set_packages() {
         echo -e "${GREEN}✅ DNF repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo dnf install -y"
         BUILD_TOOLS_PACKAGES='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
-        XORG_SERVER_PACKAGES="xorg-x11-server-Xorg xorg-x11-xinit xautolock xsetroot bc @cinnamon-desktop"
-        WAYLAND_CONFIG="hyprland waybar"
+        XORG_SERVER_PACKAGES="$XORG_SERVER_PACKAGES xorg-x11-server-Xorg xorg-x11-xinit xautolock xsetroot @cinnamon-desktop"
+        WAYLAND_CONFIG="$WAYLAND_CONFIG hyprland waybar"
         ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES ShellCheck"
     elif command_exists apt-get; then
       echo ">> APT detected (Hyprland not available)."
@@ -119,7 +113,8 @@ detect_and_set_packages() {
         echo -e "${GREEN}✅ APT repositories updated and packages upgraded.${NC}"
         INSTALL_CMD="sudo apt-get install -y"
         BUILD_TOOLS_PACKAGES="build-essential libx11-dev libxft-dev libxinerama-dev libxrandr-dev"
-        XORG_SERVER_PACKAGES="xserver-xorg xinit xautolock xsetroot bc cinnamon"
+        XORG_SERVER_PACKAGES="$XORG_SERVER_PACKAGES xserver-xorg xinit xautolock xsetroot cinnamon"
+        WAYLAND_CONFIG=""
         ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
     elif command_exists pacman; then
         echo ">> Pacman detected."
@@ -129,8 +124,8 @@ detect_and_set_packages() {
         INSTALL_CMD="sudo pacman -S --noconfirm --needed"
         CORE_TOOLS_PACKAGES="$CORE_TOOLS_PACKAGES base-devel"
         BUILD_TOOLS_PACKAGES="libx11 libxft libxinerama"
-        XORG_SERVER_PACKAGES="xorg-server xorg-xinit xorg-xsetroot bc cinnamon"
-        WAYLAND_CONFIG="hyprland hyprpaper waybar"
+        XORG_SERVER_PACKAGES="$XORG_SERVER_PACKAGES xorg-server xorg-xinit xorg-xsetroot cinnamon"
+        WAYLAND_CONFIG="$WAYLAND_CONFIG hyprland hyprpaper waybar"
         ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
     else
         echo -e "${RED}⛔ ERROR: Could not find a known package manager (dnf, apt-get, pacman).${NC}"
@@ -158,13 +153,21 @@ install_all_dependencies() {
         if ! command_exists yay; then
             echo "yay is NOT installed."
             echo -e "${CYAN}  - Installing yay.${NC}"
-            git clone https://aur.archlinux.org/yay-bin.git
-            cd yay-bin
-            makepkg -si --noconfirm
-            cd ..
-            rm -rf yay-bin
+            (
+                local YAY_DIR
+                YAY_DIR=$(mktemp -d)
+                
+                git clone https://aur.archlinux.org/yay-bin.git "$YAY_DIR" || { prompt_on_failure "Failed to clone yay-bin repository."; exit 1; }
+                
+                cd "$YAY_DIR" || { prompt_on_failure "Failed to change directory to $YAY_DIR."; exit 1; }
+                
+                makepkg -si --noconfirm || { prompt_on_failure "Failed to compile and install yay."; exit 1; }
+                
+                rm -rf "$YAY_DIR"
+            ) || prompt_on_failure "Yay installation process within subshell failed."
+
             echo -e "${CYAN}  - Installing xautolock from AUR.${NC}"
-            yay -S --noconfirm --answeredit None --answerdiff None --removemake xautolock
+            yay -S --noconfirm --answeredit None --answerdiff None --removemake xautolock || prompt_on_failure "Failed to install xautolock from AUR."
         else
             echo "yay IS installed."
         fi
@@ -191,60 +194,35 @@ install_all_dependencies() {
 install_nerd_font() {
     echo -e "${CYAN}> Installing Ubuntu Mono Nerd Font...${NC}"
 
-    FONT_NAME_CHECK="UbuntuMono Nerd Font"
+    FONT_INSTALL_TOOLS_PACKAGES="wget unzip"
+    FONT_NAME="UbuntuMono Nerd Font"
     FONT_DIR="$HOME/.local/share/fonts/UbuntuMonoNerdFont"
 
-    echo -e "${CYAN}> Checking if ${FONT_NAME_CHECK} is already installed...${NC}"
-    if fc-list | grep -qi "$FONT_NAME_CHECK"; then
-        echo -e "${GREEN}✅ ${FONT_NAME_CHECK} is already installed.${NC}"
-        echo -e "${YELLOW}If you wish to reinstall, please remove the directory ${FONT_DIR} and try again.${NC}"
+    fc-list | grep -qi "$FONT_NAME" && {
+        echo -e "${GREEN}✅ ${FONT_NAME} is already installed in ${FONT_DIR}.${NC}"
         return 0
-    else
-        echo -e "${YELLOW}Font not found, proceeding with installation.${NC}"
-    fi
+    }
 
-    echo -e "${CYAN}> Checking for required tools (wget, unzip)...${NC}"
     install_packages $FONT_INSTALL_TOOLS_PACKAGES
-    echo -e "${GREEN}✅ Required tools are present.${NC}"
 
     FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/UbuntuMono.zip"
     FONT_ZIP="UbuntuMono.zip"
 
-    echo -e "${CYAN}> Creating font directory: ${FONT_DIR}${NC}"
     mkdir -p "$FONT_DIR"
 
-    echo -e "${CYAN}> Downloading Ubuntu Mono Nerd Font...${NC}"
-    if wget -O "/tmp/$FONT_ZIP" "$FONT_URL"; then
-        echo -e "${GREEN}✅ Font downloaded successfully.${NC}"
-    else
+    wget -O "/tmp/$FONT_ZIP" "$FONT_URL" || {
         echo -e "${RED}⛔ ERROR: Failed to download font from ${FONT_URL}. Exiting.${NC}"
         return 1
-    fi
+    }
 
-    echo -e "${CYAN}> Unzipping font into ${FONT_DIR}...${NC}"
-    if unzip -o "/tmp/$FONT_ZIP" -d "$FONT_DIR"; then
-        echo -e "${GREEN}✅ Font unzipped successfully.${NC}"
-    else
+    unzip -o "/tmp/$FONT_ZIP" -d "$FONT_DIR" || {
         echo -e "${RED}⛔ ERROR: Failed to unzip font to ${FONT_DIR}. Exiting.${NC}"
         return 1
-    fi
+    }
 
-    echo -e "${CYAN}> Updating font cache...${NC}"
-    if fc-cache -fv; then
-        echo -e "${GREEN}✅ Font cache updated.${NC}"
-    else
+    fc-cache -fv || {
         echo -e "${YELLOW}Warning: Failed to update font cache. You may need to run 'fc-cache -fv' manually.${NC}"
-    fi
-
-    echo -e "${CYAN}> Cleaning up temporary files...${NC}"
-    rm -f "/tmp/$FONT_ZIP"
-    echo -e "${GREEN}✅ Cleanup complete.${NC}"
-
-    echo -e "${YELLOW}🎉 Ubuntu Mono Nerd Font installed successfully!${NC}"
-    echo -e "${CYAN}Recommendations:${NC}"
-    echo "  - You may need to restart your terminal emulator (e.g., Alacritty, Kitty) or applications (e.g., Neovim) to see the new font."
-    echo "  - Configure your terminal/application to use 'UbuntuMono Nerd Font' (or 'UbuntuMono Nerd Font Mono')."
-    echo -e "${NC}"
+    }
 }
 
 stow_user_configs() {
@@ -263,29 +241,34 @@ stow_user_configs() {
 }
 
 stow_system_configs() {
-    echo -e "${CYAN}> Symlinking system-wide configurations to /usr...${NC}"
     if [ -d "etc" ]; then
-        sudo stow --adopt -R -t / etc
-        echo -e "${GREEN}✅ System-wide configs linked successfully.${NC}"
+        echo -e "${YELLOW}Do you want to symlink configurations from the 'etc' directory to /? (Y/n)${NC}"
+        read -r response
+        case "$response" in
+            [yY])
+                sudo stow --adopt -R -t / etc
+                echo -e "${GREEN}✅ System-wide configs linked successfully.${NC}"
+                ;;
+            *)
+                echo -e "${YELLOW}Skipping 'etc' configurations.${NC}"
+                ;;
+        esac
     else
         echo "> No 'etc' package found, skipping user-wide configs."
     fi
 
-    echo -e "${CYAN}> Symlinking user-wide configurations to /usr...${NC}"
     if [ -d "usr" ]; then
         sudo stow --adopt -R -t / usr
         echo -e "${GREEN}✅ User-wide configs linked successfully.${NC}"
     else
         echo "> No 'usr' package found, skipping user-wide configs."
     fi
-
 }
 
 compile_suckless_tools() {
     echo -e "${CYAN}> Compiling and installing Suckless tools...${NC}"
 
     local SUCKLESS_BASE_DIR="$HOME/.config"
-
     local suckless_apps=(
         "dwm"
         "st"
@@ -345,6 +328,7 @@ finalize_setup() {
     echo "  - Please REBOOT or log out and log back in for all changes to take effect."
     echo "  - For Neovim, you may need to open it and run :checkhealth or let the plugin manager install plugins."
     echo "  - Populate $WALLPAPER_DIR directory with your wallpapers!"
+    echo "  - For installed fonts, you may need to restart your terminal emulator (e.g., Alacritty, Kitty) or applications (e.g., Neovim) to see the new font."
     echo -e "${NC}"
 }
 
