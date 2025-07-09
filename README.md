@@ -9,6 +9,7 @@ This repository contains my personal configuration files (dotfiles) for a custom
 * **Overwrite or delete existing files** in your home directory or other system locations.
 * **Break existing programs or configurations** due to conflicts or changes in dependencies.
 * **Lead to system instability or render your system unbootable** if not used carefully or if unforeseen issues arise.
+* **Prevent the repository from being renamed, relocated, or deleted** without breaking the symlinks and losing your configuration changes.
 
 **It is strongly recommended that you:**
 
@@ -39,12 +40,12 @@ This repository contains my personal configuration files (dotfiles) for a custom
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/lucapcf/workstation_setup.git
+    git clone https://github.com/lucapcf/bootstrap.git
     ```
 
 2.  **Navigate into the dotfiles directory:**
     ```bash
-    cd ~/workstation_setup
+    cd ~/bootstrap
     ```
 
 3.  **Run the setup script:**
