@@ -135,7 +135,6 @@ detect_and_set_packages() {
     echo -e "${GREEN}✅ Package manager configured and lists set.${NC}"
 }
 
-
 install_all_dependencies() {
     echo -e "${CYAN}> Installing all required dependencies...${NC}"
 
@@ -293,28 +292,6 @@ compile_suckless_tools() {
     echo -e "${CYAN}> Suckless tools compilation process finished.${NC}"
 }
 
-# Evaluate usefullness...
-# apply_distribution_specific_tweaks() {
-#     echo -e "${CYAN}> Applying distribution-specific tweaks...${NC}"
-#     if [[ "$OS_ID" == "fedora" ]]; then
-#         echo "  - Applying Fedora-specific bash configuration..."
-#         # Assuming you have bash_profile_fedora and bashrc_fedora inside your dotfiles structure,
-#         # Stow handles these. If you intended a specific symlink override, uncomment and adjust.
-#         # if [ -f "$HOME/.bashrc_fedora" ]; then
-#         #     ln -sf "$HOME/.bashrc_fedora" "$HOME/.bashrc"
-#         #     echo "    Linked .bashrc_fedora to .bashrc"
-#         # fi
-#         # if [ -f "$HOME/.bash_profile_fedora" ]; then
-#         #     ln -sf "$HOME/.bash_profile_fedora" "$HOME/.bash_profile"
-#         #     echo "    Linked .bash_profile_fedora to .bash_profile"
-#         # fi
-#         echo "> No specific tweaks needed for bash files if handled by stow."
-#     else
-#         echo "> No specific tweaks for this OS required."
-#     fi
-#     echo -e "${GREEN}✅ Distribution tweaks applied.${NC}"
-# }
-
 finalize_setup() {
     echo -e "${CYAN}> Finalizing setup...${NC}"
     # Effectively overwrites the stowed files that already existed in the OS
@@ -322,7 +299,7 @@ finalize_setup() {
 
     # Enable login via TTY
     sudo systemctl set-default multi-user.target
-
+    
     echo -e "${YELLOW}🎉 All done! Your system is configured.${NC}"
     echo -e "${CYAN}Recommendations:${NC}"
     echo "  - Please REBOOT or log out and log back in for all changes to take effect."

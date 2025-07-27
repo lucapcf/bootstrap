@@ -91,8 +91,10 @@ get_network_usage() {
 
     local rx_new
     rx_new=$(cat /sys/class/net/"$interface"/statistics/rx_bytes)
+    rx_new=$((rx_new * 8))
     local tx_new
     tx_new=$(cat /sys/class/net/"$interface"/statistics/tx_bytes)
+    tx_new=$((tx_new * 8))
 
     # Read previous values from files
     local rx_old
