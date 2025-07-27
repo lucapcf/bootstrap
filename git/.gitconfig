@@ -1,0 +1,14 @@
+[alias]
+	s = status -sb
+	c = commit -m
+	d = diff
+	co = checkout
+	br = branch
+	last = log -1 HEAD
+	lo = log --oneline -n 10
+	cane = commit --amend --no-edit
+	pfwl = push --force-with-lease
+	li = stash list
+	st = stash push -um
+	ap = stash apply
+	dp = stash drop
