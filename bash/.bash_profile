@@ -9,4 +9,3 @@ fi
 if [[ -z $DISPLAY && $(tty) = /dev/tty1 ]]; then
     ~/scripts/start_menu
 fi
-

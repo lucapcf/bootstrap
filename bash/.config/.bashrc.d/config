@@ -1,8 +1,10 @@
-# Enabling vi mode
+# Setup shell options
+shopt -s histappend
+shopt -s checkwinsize
+
+# Enable vi mode
 set -o vi
-
 bind -m vi-command 'Control-l: clear-screen'
-
 bind -m vi-insert 'Control-l: clear-screen'
 
 # Function to get the current Git branch name
@@ -13,27 +15,46 @@ get_git_branch() {
     fi
 }
 
+# Auto ls when cd
+cd() {
+    builtin cd "$@" && ls -A
+
+}
+
+# --- Define default fallback functions ---
+
+pbcopy() {
+    echo "Error: No suitable clipboard copy tool found for your session type or system." >&2
+    echo "Ensure 'wl-clipboard' for Wayland or 'xclip' for X11 are installed." >&2
+    return 1
+}
+
+pbpaste() {
+    echo "Error: No suitable clipboard paste tool found for your session type or system." >&2
+    echo "Ensure 'wl-clipboard' for Wayland or 'xclip' for X11 are installed." >&2
+    return 1
+}
+
+# Check session type and available tools
+if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+    if command -v wl-copy &> /dev/null; then
+        pbcopy() { wl-copy "$@"; }
+        pbpaste() { wl-paste -n "$@"; }
+    else
+        echo "Warning: wl-clipboard tools (wl-copy/wl-paste) not found for Wayland session." >&2
+    fi
+elif [ "$XDG_SESSION_TYPE" = "x11" ] || [ -n "$DISPLAY" ]; then
+    if command -v xclip &> /dev/null; then
+        pbcopy() { xclip -selection clipboard "$@"; }
+        pbpaste() { xclip -selection clipboard -o "$@"; }
+    else
+        echo "Warning: X11 xclip not found for X11 session." >&2
+    fi
+else
+    echo "Warning: Unable to determine session type (XDG_SESSION_TYPE not set or unknown). Clipboard functions might not work as expected." >&2
+fi
+
 # Enable command auto-completion
 if [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
 fi
-
-# ALIASES
-
-# Alias for ls to use color
-alias ls='ls --color=auto'
-
-# List all files
-alias la='ls -a'
-
-# vim => nvim
-alias vim='nvim'
-
-# Alias for grep to use color
-alias grep='grep --color=auto'
-
-# Alias for dotfiles' bare repo
-alias config='/usr/bin/git --git-dir=$HOME/.dotfiles_fedora/ --work-tree=$HOME'
-
-alias rmtrash='rm -rf ~/.local/share/Trash/*'
-

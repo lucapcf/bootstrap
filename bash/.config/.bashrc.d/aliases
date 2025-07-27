@@ -1,0 +1,12 @@
+# ls
+alias ls='ls --color=auto'
+alias la='ls -A'
+alias lh='ls -Alh'
+
+alias vim='nvim'
+
+alias grep='grep --color=auto'
+
+alias rmtrash='rm -rf ~/.local/share/Trash/*'
+
+alias pa='ps auxf'

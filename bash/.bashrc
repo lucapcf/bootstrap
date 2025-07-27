@@ -1,11 +1,18 @@
 # .bashrc
 
-# Get system info
-fastfetch
+case $- in
+    *i*) ;;
+    *) return;;
+esac
 
-# Source global definitions
-if [ -f /etc/bashrc ]; then
-    . /etc/bashrc
+# Get system info
+command -v fastfetch &>/dev/null && fastfetch
+
+# Source system bashrc
+if [ -f /etc/bash.bashrc ]; then
+    . "/etc/bash.bashrc"
+elif [ -f /etc/bashrc ]; then
+    . "/etc/bashrc"
 fi
 
 # User specific environment
@@ -13,9 +20,6 @@ if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
     PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 fi
 export PATH
-
-# Uncomment the following line if you don't like systemctl's auto-paging feature:
-# export SYSTEMD_PAGER=
 
 # User specific aliases, envs and functions
 if [ -d ~/.config/.bashrc.d ]; then
@@ -26,4 +30,3 @@ if [ -d ~/.config/.bashrc.d ]; then
     done
 fi
 unset rc
-
