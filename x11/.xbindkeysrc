@@ -37,82 +37,63 @@
 #keystate_capslock = enable
 #keystate_scrolllock= enable
 
-# Examples of commands:
+# Commands:
 
-#"xbindkeys_show" 
-#  control+shift + q
+# Decrease brightness
+"brightnessctl -d intel_backlight s 1000-"
+    XF86MonBrightnessDown
 
-# set directly keycode (here control + f with my keyboard)
-#"xterm"
-#  c:41 + m:0x4
+# Increase brightness
+"brightnessctl -d intel_backlight s +1000"
+    XF86MonBrightnessUp
 
-# specify a mouse button
-#"xterm"
-#  control + b:2
-
-
-
-
-# Increase volume
-"pactl set-sink-mute @DEFAULT_SINK@ false && pactl set-sink-volume @DEFAULT_SINK@ +1% && $HOME/dwm/scripts/refresh.sh" 
-    XF86AudioRaiseVolume
+# Mute microphone
+"pactl set-source-mute @DEFAULT_SOURCE@ toggle"
+    XF86AudioMicMute
 
 # Decrease volume
-"pactl set-sink-mute @DEFAULT_SINK@ false && pactl set-sink-volume @DEFAULT_SINK@ -1% && $HOME/dwm/scripts/refresh.sh"
+"pactl set-sink-volume @DEFAULT_SINK@ -1% && pactl set-sink-mute @DEFAULT_SINK@ false && $HOME/dwm/scripts/refresh.sh"
     XF86AudioLowerVolume
 
 # Mute volume
 "pactl set-sink-mute @DEFAULT_SINK@ toggle && $HOME/dwm/scripts/refresh.sh"
     XF86AudioMute
 
-# Mute microphone
-"pactl set-source-mute @DEFAULT_SOURCE@ toggle"
-    XF86AudioMicMute
+# Increase volume
+"pactl set-sink-volume @DEFAULT_SINK@ +1% && pactl set-sink-mute @DEFAULT_SINK@ false && $HOME/dwm/scripts/refresh.sh"
+    XF86AudioRaiseVolume
 
-"brightnessctl -d intel_backlight s +1000"
-    XF86MonBrightnessUp
-
-"brightnessctl -d intel_backlight s 1000-"
-    XF86MonBrightnessDown
-
+# Screenshot
 "maim -s | xclip -selection clipboard -t image/png"
     Print
 
-"pavucontrol"
-    Mod4 + o
-
+# Open Discord
 "flatpak run com.discordapp.Discord"
     Mod4 + g
 
-"flatpak run com.spotify.Client"
-    Mod4 + s
+# Open pavucontrol
+"pavucontrol"
+    Mod4 + o
 
-"$BROWSER"
-    Mod4 + y
-
+# Open file manager
 "$FILE_MANAGER"
     Mod4 + p
 
-"$TERMINAL"
-    Mod4 + Return
-
+# Shutdown
 "shutdown -P now"
     Mod4 + Shift + period
 
-#"xterm -geom 50x20+20+20"
-#   Shift+Mod2+alt + s
-#
-## set directly keycode (here control+alt+mod2 + f with my keyboard)
-#"xterm"
-#  alt + c:0x29 + m:4 + mod2
-#
-## Control+Shift+a  release event starts rxvt
-#"rxvt"
-#  release+control+shift + a
-#
-## Control + mouse button 2 release event starts rxvt
-#"rxvt"
-#  Control + b:2 + Release
+# Open Spotify
+"flatpak run com.spotify.Client"
+    Mod4 + s
+
+# Open terminal
+"$TERMINAL"
+    Mod4 + Return
+
+# Open browser
+"$BROWSER"
+    Mod4 + y
 
 ##################################
 # End of xbindkeys configuration #
