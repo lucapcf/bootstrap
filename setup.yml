@@ -1,0 +1,221 @@
+---
+- name: Dotfiles Setup
+  hosts: localhost
+  connection: local
+  become: true
+  
+  vars:
+    user_name: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    user_home: "{{ ansible_env.HOME }}"
+    dotfiles_dir: "{{ playbook_dir }}"
+    
+    pkgs_common:
+      - git
+      - stow
+      - alacritty
+      - kitty
+      - neovim
+      - picom
+      - waybar
+      - wofi
+      - feh
+      - xbindkeys
+      - fastfetch
+      - tree
+      - tldr
+      - bash-completion
+      - nemo
+      - vlc
+      - htop
+      - chromium
+      - libreoffice
+      - qbittorrent
+      - bc
+      - awk
+      - zathura
+      - unzip
+      - wget
+
+    pkgs_fedora:
+      - "@development-tools"
+      - libX11-devel
+      - libXft-devel
+      - libXinerama-devel
+      - libXrandr-devel
+      - xorg-x11-server-Xorg
+      - xorg-x11-xinit
+      - xautolock
+      - xsetroot
+      - "@cinnamon-desktop"
+      - hyprland
+      - ShellCheck
+      - firefox
+      - wl-clipboard
+      - xclip
+      - maim
+      - zathura-pdf-poppler
+
+    pkgs_debian:
+      - build-essential
+      - libx11-dev
+      - libxft-dev
+      - libxinerama-dev
+      - libxrandr-dev
+      - xserver-xorg
+      - xinit
+      - xautolock
+      - xsetroot
+      - cinnamon
+      - shellcheck
+      - firefox-esr
+      - wl-clipboard
+      - xclip
+      - maim
+      - zathura-pdf-poppler
+
+    pkgs_arch:
+      - base-devel
+      - libx11
+      - libxft
+      - libxinerama
+      - xorg-server
+      - xorg-xinit
+      - xorg-xsetroot
+      - cinnamon
+      - hyprland
+      - hyprpaper
+      - shellcheck
+      - firefox
+      - wl-clipboard
+      - xclip
+      - maim
+      - zathura-pdf-poppler
+
+  tasks:
+    - name: Update and Install Packages (Fedora)
+      dnf:
+        name: "{{ pkgs_common + pkgs_fedora }}"
+        state: latest
+        update_cache: yes
+      when: ansible_distribution == 'Fedora'
+
+    - name: Update and Install Packages (Debian/Ubuntu)
+      apt:
+        name: "{{ pkgs_common + pkgs_debian }}"
+        state: latest
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Update and Install Packages (Arch)
+      pacman:
+        name: "{{ pkgs_common + pkgs_arch }}"
+        state: latest
+        update_cache: yes
+      when: ansible_os_family == 'Archlinux'
+
+    - name: Handle AUR (Arch Only)
+      when: ansible_os_family == 'Archlinux'
+      block:
+        - name: Check if yay is installed
+          command: which yay
+          register: yay_check
+          ignore_errors: true
+          changed_when: false
+
+        - name: Clone yay
+          git:
+            repo: https://aur.archlinux.org/yay-bin.git
+            dest: "/tmp/yay-bin"
+          become: false
+          when: yay_check.rc != 0
+
+        - name: Build and Install yay
+          command: makepkg -si --noconfirm
+          args:
+            chdir: "/tmp/yay-bin"
+          become: false
+          when: yay_check.rc != 0
+
+        - name: Install AUR packages (xautolock)
+          command: yay -S --noconfirm --needed xautolock
+          become: false
+
+    - name: Ensure font directory exists
+      file:
+        path: "{{ user_home }}/.local/share/fonts/UbuntuMonoNerdFont"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+      become: false
+
+    - name: Download UbuntuMono Nerd Font
+      get_url:
+        url: https://github.com/ryanoasis/nerd-fonts/releases/latest/download/UbuntuMono.zip
+        dest: "/tmp/UbuntuMono.zip"
+
+    - name: Unzip Font
+      unzip:
+        src: "/tmp/UbuntuMono.zip"
+        dest: "{{ user_home }}/.local/share/fonts/UbuntuMonoNerdFont"
+        remote_src: yes
+      become: false
+      register: font_unzip
+
+    - name: Refresh Font Cache
+      command: fc-cache -fv
+      when: font_unzip.changed
+
+    - name: Find directories to stow (excluding etc/usr)
+      find:
+        paths: "{{ dotfiles_dir }}"
+        file_type: directory
+        recurse: no
+        excludes: "etc,usr,.git,.github"
+      register: stow_dirs
+
+    - name: Stow User Configs
+      command: "stow --adopt -R -t {{ user_home }} {{ item.path | basename }}"
+      args:
+        chdir: "{{ dotfiles_dir }}"
+      loop: "{{ stow_dirs.files }}"
+      become: false
+      ignore_errors: yes
+
+    - name: Stow System Configs (/usr)
+      command: "stow --adopt -R -t / usr"
+      args:
+        chdir: "{{ dotfiles_dir }}"
+      when: ansible_distribution_file_path_usr is defined or (dotfiles_dir + '/usr') is is_dir
+
+    - name: Stow System Configs (/etc)
+      command: "stow --adopt -R -t / etc"
+      args:
+        chdir: "{{ dotfiles_dir }}"
+      when: (dotfiles_dir + '/etc') is is_dir
+
+    - name: Compile and Install Suckless Tools
+      community.general.make:
+        chdir: "{{ user_home }}/.config/{{ item }}"
+        target: install
+      loop:
+        - dwm
+        - st
+        - dmenu
+        - slock
+      ignore_errors: yes
+
+    - name: Restore git changes caused by Stow adoption
+      command: git restore .
+      args:
+        chdir: "{{ dotfiles_dir }}"
+      become: false
+
+    - name: Set default boot target to multi-user (TTY login)
+      systemd:
+        name: default.target
+        state: linked
+        enabled: yes
+        masked: no
+        daemon_reload: yes
+    - name: Force Multi-User Target
+      command: systemctl set-default multi-user.target
