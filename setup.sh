@@ -92,7 +92,7 @@ detect_and_set_packages() {
     CORE_TOOLS_PACKAGES="git stow"
     XORG_SERVER_PACKAGES="xclip maim bc"
     WAYLAND_CONFIG="wl-clipboard"
-    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion firefox nemo vlc htop chromium libreoffice qbittorrent bc awk"
+    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion nemo vlc htop chromium libreoffice qbittorrent bc awk"
 
     if command_exists dnf; then
         echo ">> DNF detected."
@@ -104,7 +104,7 @@ detect_and_set_packages() {
         BUILD_TOOLS_PACKAGES='@development-tools libX11-devel libXft-devel libXinerama-devel libXrandr-devel'
         XORG_SERVER_PACKAGES="$XORG_SERVER_PACKAGES xorg-x11-server-Xorg xorg-x11-xinit xautolock xsetroot @cinnamon-desktop"
         WAYLAND_CONFIG="$WAYLAND_CONFIG hyprland waybar"
-        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES ShellCheck"
+        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES ShellCheck firefox"
     elif command_exists apt-get; then
       echo ">> APT detected (Hyprland not available)."
         echo -e "${CYAN}› Updating APT repositories and upgrading all packages...${NC}"
@@ -115,7 +115,7 @@ detect_and_set_packages() {
         BUILD_TOOLS_PACKAGES="build-essential libx11-dev libxft-dev libxinerama-dev libxrandr-dev"
         XORG_SERVER_PACKAGES="$XORG_SERVER_PACKAGES xserver-xorg xinit xautolock xsetroot cinnamon"
         WAYLAND_CONFIG=""
-        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
+        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck firefox-esr"
     elif command_exists pacman; then
         echo ">> Pacman detected."
         echo -e "${CYAN}› Updating Pacman repositories and upgrading all packages...${NC}"
@@ -126,7 +126,7 @@ detect_and_set_packages() {
         BUILD_TOOLS_PACKAGES="libx11 libxft libxinerama"
         XORG_SERVER_PACKAGES="$XORG_SERVER_PACKAGES xorg-server xorg-xinit xorg-xsetroot cinnamon"
         WAYLAND_CONFIG="$WAYLAND_CONFIG hyprland hyprpaper waybar"
-        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck"
+        ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES shellcheck firefox"
     else
         echo -e "${RED}⛔ ERROR: Could not find a known package manager (dnf, apt-get, pacman).${NC}"
         echo -e "${YELLOW}Please install dependencies manually and re-run this script.${NC}"
