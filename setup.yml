@@ -20,7 +20,6 @@
       - wofi
       - feh
       - xbindkeys
-      - fastfetch
       - tree
       - tldr
       - bash-completion
@@ -31,7 +30,7 @@
       - libreoffice
       - qbittorrent
       - bc
-      - awk
+      - gawk
       - zathura
       - unzip
       - wget
@@ -54,6 +53,7 @@
       - xclip
       - maim
       - zathura-pdf-poppler
+      - fastfetch
 
     pkgs_debian:
       - build-essential
@@ -72,6 +72,7 @@
       - xclip
       - maim
       - zathura-pdf-poppler
+      - neofetch
 
     pkgs_arch:
       - base-devel
@@ -90,6 +91,7 @@
       - xclip
       - maim
       - zathura-pdf-poppler
+      - fastfetch
 
   tasks:
     - name: Update and Install Packages (Fedora)
@@ -154,7 +156,7 @@
         dest: "/tmp/UbuntuMono.zip"
 
     - name: Unzip Font
-      unzip:
+      unarchive:
         src: "/tmp/UbuntuMono.zip"
         dest: "{{ user_home }}/.local/share/fonts/UbuntuMonoNerdFont"
         remote_src: yes
