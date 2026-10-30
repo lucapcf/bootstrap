@@ -92,7 +92,7 @@ detect_and_set_packages() {
     CORE_TOOLS_PACKAGES="git stow"
     XORG_SERVER_PACKAGES="xclip maim bc"
     WAYLAND_CONFIG="wl-clipboard"
-    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion nemo vlc htop chromium libreoffice qbittorrent bc awk"
+    ADDITIONAL_PACKAGES="alacritty kitty neovim picom waybar wofi feh xbindkeys fastfetch tree tldr bash-completion nemo vlc htop chromium libreoffice qbittorrent bc awk zoxide"
 
     if command_exists dnf; then
         echo ">> DNF detected."
